@@ -11,7 +11,7 @@ import SwiftUI
 struct Pin_FeatureApp: App {
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            HomeScreenView()
         }
     }
 }
