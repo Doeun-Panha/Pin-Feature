@@ -8,7 +8,8 @@
 import SwiftUI
 
 struct PinScreenView: View {
-    @Environment(\.dismiss) private var dismiss
+    var onDismiss: () -> Void
+    var onSuccess: () -> Void
     
     @State private var viewModel: PinScreenViewModel = PinScreenViewModel()
     
@@ -26,7 +27,7 @@ extension PinScreenView {
     private var containerView: some View {
         NavigationStack {
             ZStack(alignment: .top) {
-                Color(hex: "0A121E")
+                Color(hex: "162634")
                     .ignoresSafeArea()
                 
                 VStack(spacing: 0) {
@@ -51,12 +52,18 @@ extension PinScreenView {
             }
             .toolbar(.hidden, for: .navigationBar)
         }
+        .onAppear {
+            viewModel.onSuccessCallback = {
+                onSuccess()
+            }
+            viewModel.loadProfile()
+        }
     }
     
     private var topNavigationView: some View {
         HStack {
             Button(action: {
-                dismiss()
+                onDismiss()
             }) {
                 Image(systemName: "chevron.left")
                     .font(.system(size: 20, weight: .semibold))
@@ -121,9 +128,14 @@ extension PinScreenView {
     }
     
     private var fallbackImageView: some View {
-        Image("nil-image-placeholder")
+        //Temp Profile image
+        Image("profile-image")
             .resizable()
             .scaledToFill()
+        
+//        Image("nil-image-placeholder")
+//            .resizable()
+//            .scaledToFill()
     }
     
     private var pinRowView: some View {
@@ -171,8 +183,7 @@ extension PinScreenView {
                         Spacer()
                         
                         keypadButton(label: row[0]) {
-//                            viewModel.appendDigit(row[0])
-                            viewModel.simulateError()
+                            viewModel.appendDigit(row[0])
                         }
                         
                         Spacer()
@@ -185,7 +196,7 @@ extension PinScreenView {
     private func keypadButton(label: String, action: @escaping () -> Void) -> some View {
         Button(action: action) {
             Text(label)
-                .font(.nunito(28, weight: .regular))
+                .font(.system(size: 28, weight: .regular))
                 .foregroundStyle(.white)
                 .frame(width: keypadButtonSize, height: keypadButtonSize)
                 .clipShape(Circle())
@@ -197,11 +208,11 @@ extension PinScreenView {
         }
     }
     
-
     private var bottomActionsView: some View {
         HStack {
             Button("Forget PIN") {
-                viewModel.forgetPIN()
+//                viewModel.forgetPIN()
+                viewModel.simulateError()
             }
             .font(.nunito(15, weight: .regular))
             .foregroundStyle(.white)
@@ -210,7 +221,7 @@ extension PinScreenView {
             
             Button(viewModel.secondaryButtonTitle) {
                 viewModel.handleSecondaryAction {
-                    dismiss()
+                    onDismiss()
                 }
             }
             .font(.nunito(15, weight: .regular))

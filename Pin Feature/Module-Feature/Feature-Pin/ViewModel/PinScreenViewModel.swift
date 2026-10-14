@@ -14,10 +14,11 @@ import SwiftUI
 final class PinScreenViewModel {
     let pinLength = 6
     
+    //Temp data
     var userProfile: PinScreenModel? = PinScreenModel(
         profileImageUrl: "nil-image-placeholder",
-        name: "Name not Loaded",
-        phone: "XXX XXX XXX"
+        name: "Doeun Panha",
+        phone: "069 988 883"
     )
     
     var profileImageURL: URL? {
@@ -45,10 +46,24 @@ final class PinScreenViewModel {
     
     var enteredPin: String = ""
     var isError: Bool = false
+    
+    //Temp default error
     let errorMessage = "0085: Please Enter the Correct PIN"
+    
+    var onSuccessCallback: (() -> Void)?
 }
 
 extension PinScreenViewModel {
+    func loadProfile() {
+//        Task {
+//            do {
+//                
+//            } catch {
+//                
+//            }
+//        }
+    }
+    
     func appendDigit(_ digit: String) {
         guard enteredPin.count < pinLength else { return }
         enteredPin.append(digit)
@@ -64,11 +79,15 @@ extension PinScreenViewModel {
     }
     
     private func handlePinCompletion() {
-        let requestPayload = PinVerifyRequest(pin: enteredPin)
+        onSuccessCallback?()
         
+//        let requestPayload = PinVerifyRequest(pin: enteredPin)
+//        
 //        Task {
 //            do {
-//                
+//
+//        
+//                onSuccessCallback?()
 //            } catch {
 //                isError = true
 //                enteredPin = ""
@@ -76,9 +95,8 @@ extension PinScreenViewModel {
 //        }
     }
     
-    func simulateError() {
-        isError = !isError
-
+    func forgetPIN() {
+        
     }
     
     func handleSecondaryAction(onDismiss: () -> Void) {
@@ -89,7 +107,8 @@ extension PinScreenViewModel {
         }
     }
     
-    func forgetPIN() {
-        
+    //temp func
+    func simulateError() {
+        isError = !isError
     }
 }
