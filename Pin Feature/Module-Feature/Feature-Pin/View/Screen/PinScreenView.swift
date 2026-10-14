@@ -12,6 +12,7 @@ struct PinScreenView: View {
     var onSuccess: () -> Void
     
     @State private var viewModel: PinScreenViewModel = PinScreenViewModel()
+    @State private var shakeOffset: CGFloat = 0
     
     let profileImageSize: CGFloat = 80
     let nameTextColor = "#ac9354"
@@ -52,11 +53,26 @@ extension PinScreenView {
             }
             .toolbar(.hidden, for: .navigationBar)
         }
+        
         .onAppear {
             viewModel.onSuccessCallback = {
                 onSuccess()
             }
             viewModel.loadProfile()
+        }
+        
+        .onChange(of: viewModel.errorTriggerCount) { oldValue, newValue in
+            guard newValue > 0 else { return }
+            
+            let generator = UINotificationFeedbackGenerator()
+            generator.notificationOccurred(.error)
+            
+            withAnimation(.spring(response: 0.2, dampingFraction: 0.2)) {
+                shakeOffset = 15
+            }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+                shakeOffset = 0
+            }
         }
     }
     
@@ -152,12 +168,13 @@ extension PinScreenView {
                 }
             }
             
-            if(viewModel.isError) {
+            if viewModel.errorTriggerCount > 0 {
                 Text(viewModel.errorMessage)
                     .font(.nunito(15, weight: .regular))
                     .foregroundStyle(.red)
-                    .offset(y: 20)
                     .padding(.bottom, 7)
+                    .offset(x: shakeOffset)
+                    .offset(y: 20)
             }
         }
     }

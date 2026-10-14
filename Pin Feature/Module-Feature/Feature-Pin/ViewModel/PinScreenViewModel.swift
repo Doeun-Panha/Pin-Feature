@@ -45,7 +45,7 @@ final class PinScreenViewModel {
     }
     
     var enteredPin: String = ""
-    var isError: Bool = false
+    var errorTriggerCount: Int = 0
     
     //Temp default error
     let errorMessage = "0085: Please Enter the Correct PIN"
@@ -79,7 +79,12 @@ extension PinScreenViewModel {
     }
     
     private func handlePinCompletion() {
-        onSuccessCallback?()
+        if enteredPin == "111111" {
+            onSuccessCallback?()
+        } else {
+            errorTriggerCount += 1
+            enteredPin = ""
+        }
         
 //        let requestPayload = PinVerifyRequest(pin: enteredPin)
 //        
@@ -109,6 +114,7 @@ extension PinScreenViewModel {
     
     //temp func
     func simulateError() {
-        isError = !isError
+        errorTriggerCount += 1
+        enteredPin = ""
     }
 }
