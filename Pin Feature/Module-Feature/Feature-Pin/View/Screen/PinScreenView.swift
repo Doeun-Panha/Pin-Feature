@@ -26,33 +26,31 @@ struct PinScreenView: View {
 
 extension PinScreenView {
     private var containerView: some View {
-        NavigationStack {
-            ZStack(alignment: .top) {
-                Color(hex: "162634")
-                    .ignoresSafeArea()
+        ZStack(alignment: .top) {
+            Color(hex: "162634")
+                .ignoresSafeArea()
+            
+            VStack(spacing: 0) {
+                Spacer()
                 
-                VStack(spacing: 0) {
-                    Spacer()
+                profileSectionView
+                
+                pinRowView
+                
+                Spacer()
+                    .frame(height: 42)
+                
+                VStack(spacing: 64) {
+                    keypadView
                     
-                    profileSectionView
-                    
-                    pinRowView
-                    
-                    Spacer()
-                        .frame(height: 42)
-                    
-                    VStack(spacing: 64) {
-                        keypadView
-                        
-                        bottomActionsView
-                    }
+                    bottomActionsView
                 }
-                .padding(.horizontal)
-                
-                topNavigationView
             }
-            .toolbar(.hidden, for: .navigationBar)
+            .padding(.horizontal)
+            
+            topNavigationView
         }
+        .toolbar(.hidden, for: .navigationBar)
         
         .onAppear {
             viewModel.onSuccessCallback = {
@@ -228,8 +226,7 @@ extension PinScreenView {
     private var bottomActionsView: some View {
         HStack {
             Button("Forget PIN") {
-//                viewModel.forgetPIN()
-                viewModel.simulateError()
+                viewModel.forgetPIN()
             }
             .font(.nunito(15, weight: .regular))
             .foregroundStyle(.white)

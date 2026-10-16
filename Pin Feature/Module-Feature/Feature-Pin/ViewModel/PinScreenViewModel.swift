@@ -111,10 +111,4 @@ extension PinScreenViewModel {
             deleteDigit()
         }
     }
-    
-    //temp func
-    func simulateError() {
-        errorTriggerCount += 1
-        enteredPin = ""
-    }
 }
