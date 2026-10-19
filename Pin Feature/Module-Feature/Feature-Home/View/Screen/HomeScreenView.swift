@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct HomeScreenView: View {
-    @State private var showPinScreen: Bool = false
+    @State private var showPinScreen: Bool = true
     
     var body: some View {
         Container

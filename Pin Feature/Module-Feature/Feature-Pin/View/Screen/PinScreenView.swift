@@ -1,5 +1,5 @@
 //
-//  ContentView.swift
+//  PinScreenView.swift
 //  Pin Feature
 //
 //  Created by Panha on 13/10/26.
@@ -16,8 +16,8 @@ struct PinScreenView: View {
     
     let profileImageSize: CGFloat = 80
     let nameTextColor = "#ac9354"
-    let pinDotSize: CGFloat = 18
-    let keypadButtonSize: CGFloat = 65
+//    let pinDotSize: CGFloat = 18
+//    let keypadButtonSize: CGFloat = 65
     
     var body: some View {
         containerView
@@ -26,29 +26,74 @@ struct PinScreenView: View {
 
 extension PinScreenView {
     private var containerView: some View {
-        ZStack(alignment: .top) {
-            Color(hex: "162634")
-                .ignoresSafeArea()
+        GeometryReader { geometry in
+            let screenWidth = geometry.size.width
+            let screenHeight = geometry.size.height
             
-            VStack(spacing: 0) {
-                Spacer()
+            let backButtonIconSize = screenWidth * 0.05
+            let backButtonPadding = screenWidth * 0.04
+            
+            let profileImageSize = screenWidth * 0.215
+            let nameFontSize = screenWidth * 0.045
+            let bodyFontSize = screenWidth * 0.038
+            let pinDotSize = screenWidth * 0.05
+            
+            let keypadButtonSize = screenWidth * 0.17
+            let keypadColumnSpacing = screenWidth * 0.11
+            let keypadRowSpacing = screenHeight * 0.025
+            
+            let actionButtonFontSize = screenWidth * 0.038
+            let actionButtonPadding = screenWidth * 0.09
+            
+            let topSpacing: CGFloat = viewModel.errorTriggerCount > 0 ? 20 : 50
+            
+            ZStack(alignment: .top) {
+                Color(hex: "162634")
+                    .ignoresSafeArea()
                 
-                profileSectionView
+                topNavigationView(
+                    iconSize: backButtonIconSize,
+                    padding: backButtonPadding
+                )
+                    .frame(maxHeight: .infinity, alignment: .top)
                 
-                pinRowView
-                
-                Spacer()
-                    .frame(height: 42)
-                
-                VStack(spacing: 64) {
-                    keypadView
+                VStack(spacing: 0) {
+                    Color.clear
+                        .frame(height: topSpacing)
+                        .animation(.spring(response: 0.3, dampingFraction: 0.7), value: viewModel.errorTriggerCount)
                     
-                    bottomActionsView
+                    VStack(spacing: 0) {
+                        profileSectionView(
+                            imageSize: profileImageSize,
+                            nameFontSize: nameFontSize,
+                            bodyFontSize: bodyFontSize
+                        )
+                        
+                        pinRowView(
+                            dotSize: pinDotSize,
+                            bodyFontSize: bodyFontSize
+                        )
+                    }
+                    
+                    Spacer()
                 }
+                .frame(width: screenWidth, height: screenHeight, alignment: .top)
+                
+                VStack(spacing: screenHeight * 0.09) {
+                    keypadView(
+                        size: keypadButtonSize,
+                        rowSpacing: keypadRowSpacing,
+                        columnSpacing: keypadColumnSpacing
+                    )
+                    
+                    bottomActionsView(
+                        size: actionButtonFontSize,
+                        padding: actionButtonPadding
+                    )
+                }
+                .frame(maxHeight: .infinity, alignment: .bottom)
+                .padding(.bottom, screenHeight * 0.03)
             }
-            .padding(.horizontal)
-            
-            topNavigationView
         }
         .toolbar(.hidden, for: .navigationBar)
         
@@ -72,17 +117,21 @@ extension PinScreenView {
                 shakeOffset = 0
             }
         }
+        
     }
     
-    private var topNavigationView: some View {
+    private func topNavigationView(
+        iconSize: CGFloat,
+        padding: CGFloat
+    ) -> some View {
         HStack {
             Button(action: {
                 onDismiss()
             }) {
                 Image(systemName: "chevron.left")
-                    .font(.system(size: 20, weight: .semibold))
+                    .font(.system(size: iconSize, weight: .semibold))
                     .foregroundStyle(.white)
-                    .padding(14)
+                    .padding(padding)
                     .background(Circle().fill(Color.white.opacity(0.15)))
             }
             
@@ -92,32 +141,36 @@ extension PinScreenView {
         .safeAreaPadding(.top, 5)
     }
     
-    private var profileSectionView: some View {
+    private func profileSectionView(
+        imageSize: CGFloat,
+        nameFontSize: CGFloat,
+        bodyFontSize: CGFloat
+    ) -> some View {
         VStack(spacing: 14) {
-            VStack(spacing: 10) {
-                profileImageView
-                    .frame(width: profileImageSize, height: profileImageSize)
+            VStack(spacing: 8) {
+                profileImageView(imageSize: imageSize)
+                    .frame(width: imageSize, height: imageSize)
                     .clipShape(Circle())
                     .overlay(Circle().stroke(Color.white, lineWidth: 0.5))
                 
                 Text(viewModel.displayName)
-                    .font(.nunito(18, weight: .medium))
+                    .font(.nunito(nameFontSize, weight: .semibold))
                     .foregroundStyle(Color(hex: nameTextColor))
             }
             
             Text(viewModel.displayPhone)
-                .font(.nunito(15, weight: .regular))
+                .font(.nunito(bodyFontSize, weight: .medium))
                 .foregroundStyle(.white)
             
             Text("Please Enter PIN")
-                .font(.nunito(15, weight: .regular))
+                .font(.nunito(bodyFontSize, weight: .medium))
                 .foregroundStyle(.white)
         }
         .padding(.bottom, 30)
     }
     
     @ViewBuilder
-    private var profileImageView: some View {
+    private func profileImageView(imageSize: CGFloat) -> some View {
         if let url = viewModel.profileImageURL {
             AsyncImage(url: url) { phase in
                 switch phase {
@@ -152,13 +205,16 @@ extension PinScreenView {
 //            .scaledToFill()
     }
     
-    private var pinRowView: some View {
+    private func pinRowView(
+        dotSize: CGFloat,
+        bodyFontSize: CGFloat
+    ) -> some View {
         VStack(spacing: 0) {
             HStack(spacing: 16) {
                 ForEach(0..<viewModel.pinLength, id: \.self) { index in
                     Circle()
                         .stroke(Color.white, lineWidth: 0.75)
-                        .frame(width: pinDotSize, height: pinDotSize)
+                        .frame(width: dotSize, height: dotSize)
                         .background(
                             Circle()
                                 .fill(index < viewModel.enteredPin.count ? Color.white : Color.clear)
@@ -168,7 +224,7 @@ extension PinScreenView {
             
             if viewModel.errorTriggerCount > 0 {
                 Text(viewModel.errorMessage)
-                    .font(.nunito(15, weight: .regular))
+                    .font(.nunito(bodyFontSize, weight: .medium))
                     .foregroundStyle(.red)
                     .padding(.bottom, 7)
                     .offset(x: shakeOffset)
@@ -177,8 +233,12 @@ extension PinScreenView {
         }
     }
     
-    private var keypadView: some View {
-        VStack(spacing: 18) {
+    private func keypadView(
+        size: CGFloat,
+        rowSpacing: CGFloat,
+        columnSpacing: CGFloat
+    ) -> some View {
+        VStack(spacing: rowSpacing) {
             let rows = [
                 ["1", "2", "3"],
                 ["4", "5", "6"],
@@ -187,17 +247,17 @@ extension PinScreenView {
             ]
             
             ForEach(rows, id: \.self) { row in
-                HStack(spacing: 45) {
+                HStack(spacing: columnSpacing) {
                     if row.count > 1 {
                         ForEach(row, id: \.self) { digit in
-                            keypadButton(label: digit) {
+                            keypadButton(label: digit, size: size) {
                                 viewModel.appendDigit(digit)
                             }
                         }
                     } else {
                         Spacer()
                         
-                        keypadButton(label: row[0]) {
+                        keypadButton(label: row[0], size: size) {
                             viewModel.appendDigit(row[0])
                         }
                         
@@ -208,12 +268,16 @@ extension PinScreenView {
         }
     }
     
-    private func keypadButton(label: String, action: @escaping () -> Void) -> some View {
+    private func keypadButton(
+        label: String,
+        size: CGFloat,
+        action: @escaping () -> Void
+    ) -> some View {
         Button(action: action) {
             Text(label)
-                .font(.system(size: 28, weight: .regular))
+                .font(.system(size: size * 0.42, weight: .regular))
                 .foregroundStyle(.white)
-                .frame(width: keypadButtonSize, height: keypadButtonSize)
+                .frame(width: size, height: size)
                 .clipShape(Circle())
                 .overlay(
                     Circle()
@@ -223,12 +287,15 @@ extension PinScreenView {
         }
     }
     
-    private var bottomActionsView: some View {
+    private func bottomActionsView(
+        size: CGFloat,
+        padding: CGFloat
+    ) -> some View {
         HStack {
             Button("Forget PIN") {
                 viewModel.forgetPIN()
             }
-            .font(.nunito(15, weight: .regular))
+            .font(.nunito(size, weight: .medium))
             .foregroundStyle(.white)
             
             Spacer()
@@ -238,10 +305,9 @@ extension PinScreenView {
                     onDismiss()
                 }
             }
-            .font(.nunito(15, weight: .regular))
+            .font(.nunito(size, weight: .medium))
             .foregroundStyle(.white)
         }
-        .padding(.horizontal, 34)
-        .safeAreaPadding(.bottom, 19)
+        .padding(.horizontal, padding)
     }
 }
