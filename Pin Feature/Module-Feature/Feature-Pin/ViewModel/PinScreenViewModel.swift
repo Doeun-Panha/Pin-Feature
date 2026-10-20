@@ -101,7 +101,7 @@ extension PinScreenViewModel {
     }
     
     func forgetPIN() {
-        
+        errorTriggerCount = 0
     }
     
     func handleSecondaryAction(onDismiss: () -> Void) {

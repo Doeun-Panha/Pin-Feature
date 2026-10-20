@@ -29,6 +29,7 @@ extension PinScreenView {
         GeometryReader { geometry in
             let screenWidth = geometry.size.width
             let screenHeight = geometry.size.height
+            let isCompact = screenHeight < 670
             
             let backButtonIconSize = screenWidth * 0.05
             let backButtonPadding = screenWidth * 0.04
@@ -38,14 +39,13 @@ extension PinScreenView {
             let bodyFontSize = screenWidth * 0.038
             let pinDotSize = screenWidth * 0.05
             
-            let keypadButtonSize = screenWidth * 0.17
+            let keypadButtonSize = screenWidth * 0.175
             let keypadColumnSpacing = screenWidth * 0.11
             let keypadRowSpacing = screenHeight * 0.025
+            let keypadBottomPadding = screenHeight * (isCompact ? 0.02 : 0.08)
             
             let actionButtonFontSize = screenWidth * 0.038
             let actionButtonPadding = screenWidth * 0.09
-            
-            let topSpacing: CGFloat = viewModel.errorTriggerCount > 0 ? 20 : 50
             
             ZStack(alignment: .top) {
                 Color(hex: "162634")
@@ -55,41 +55,44 @@ extension PinScreenView {
                     iconSize: backButtonIconSize,
                     padding: backButtonPadding
                 )
-                    .frame(maxHeight: .infinity, alignment: .top)
                 
                 VStack(spacing: 0) {
-                    Color.clear
-                        .frame(height: topSpacing)
-                        .animation(.spring(response: 0.3, dampingFraction: 0.7), value: viewModel.errorTriggerCount)
-                    
                     VStack(spacing: 0) {
+                        Spacer()
+                        
                         profileSectionView(
                             imageSize: profileImageSize,
                             nameFontSize: nameFontSize,
                             bodyFontSize: bodyFontSize
                         )
                         
+                        Spacer()
+                        
                         pinRowView(
                             dotSize: pinDotSize,
                             bodyFontSize: bodyFontSize
                         )
+                        
+                        Spacer(minLength: 20)
                     }
-                    
-                    Spacer()
-                }
-                .frame(width: screenWidth, height: screenHeight, alignment: .top)
-                
-                VStack(spacing: screenHeight * 0.09) {
-                    keypadView(
-                        size: keypadButtonSize,
-                        rowSpacing: keypadRowSpacing,
-                        columnSpacing: keypadColumnSpacing
-                    )
-                    
-                    bottomActionsView(
-                        size: actionButtonFontSize,
-                        padding: actionButtonPadding
-                    )
+                 
+                    VStack(spacing: 0) {
+                        Spacer()
+                        
+                        keypadView(
+                            size: keypadButtonSize,
+                            rowSpacing: keypadRowSpacing,
+                            columnSpacing: keypadColumnSpacing
+                        )
+                        
+                        Color.clear
+                            .frame(height: keypadBottomPadding)
+                        
+                        bottomActionsView(
+                            size: actionButtonFontSize,
+                            padding: actionButtonPadding
+                        )
+                    }
                 }
                 .frame(maxHeight: .infinity, alignment: .bottom)
                 .padding(.bottom, screenHeight * 0.03)
@@ -102,6 +105,15 @@ extension PinScreenView {
                 onSuccess()
             }
             viewModel.loadProfile()
+            
+            Task {
+                while true {
+                    viewModel.errorTriggerCount = 0
+                    try? await Task.sleep(for: .seconds(2))
+                    viewModel.errorTriggerCount = 1
+                    try? await Task.sleep(for: .seconds(2))
+                }
+            }
         }
         
         .onChange(of: viewModel.errorTriggerCount) { oldValue, newValue in
@@ -166,7 +178,7 @@ extension PinScreenView {
                 .font(.nunito(bodyFontSize, weight: .medium))
                 .foregroundStyle(.white)
         }
-        .padding(.bottom, 30)
+//        .padding(.bottom, keypadBottomPadding)
     }
     
     @ViewBuilder
@@ -243,25 +255,20 @@ extension PinScreenView {
                 ["1", "2", "3"],
                 ["4", "5", "6"],
                 ["7", "8", "9"],
-                ["0"]
+                ["", "0", ""]
             ]
             
             ForEach(rows, id: \.self) { row in
                 HStack(spacing: columnSpacing) {
-                    if row.count > 1 {
-                        ForEach(row, id: \.self) { digit in
+                    ForEach(row, id: \.self) { digit in
+                        if digit.isEmpty {
+                            Color.clear
+                                .frame(width: size, height: size)
+                        } else {
                             keypadButton(label: digit, size: size) {
                                 viewModel.appendDigit(digit)
                             }
                         }
-                    } else {
-                        Spacer()
-                        
-                        keypadButton(label: row[0], size: size) {
-                            viewModel.appendDigit(row[0])
-                        }
-                        
-                        Spacer()
                     }
                 }
             }
