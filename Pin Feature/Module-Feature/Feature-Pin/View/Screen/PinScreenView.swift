@@ -48,13 +48,14 @@ extension PinScreenView {
             let actionButtonPadding = screenWidth * 0.09
             
             ZStack(alignment: .top) {
-                Color(hex: "162634")
-                    .ignoresSafeArea()
+//                Color(hex: "162634")
+//                    .ignoresSafeArea()
                 
                 topNavigationView(
                     iconSize: backButtonIconSize,
                     padding: backButtonPadding
                 )
+                .safeAreaPadding(.top, 5)
                 
                 VStack(spacing: 0) {
                     VStack(spacing: 0) {
@@ -98,6 +99,18 @@ extension PinScreenView {
                 .padding(.bottom, screenHeight * 0.03)
             }
         }
+        .background {
+            ZStack {
+                Rectangle()
+                    .fill(.ultraThinMaterial)
+                    .environment(\.colorScheme, .dark)
+                
+                Color(hex: "0D1926")
+                    .opacity(0.65)
+            }
+            .ignoresSafeArea()
+        }
+        
         .toolbar(.hidden, for: .navigationBar)
         
         .onAppear {
@@ -150,7 +163,6 @@ extension PinScreenView {
             Spacer()
         }
         .padding(.horizontal)
-        .safeAreaPadding(.top, 5)
     }
     
     private func profileSectionView(
@@ -178,7 +190,6 @@ extension PinScreenView {
                 .font(.nunito(bodyFontSize, weight: .medium))
                 .foregroundStyle(.white)
         }
-//        .padding(.bottom, keypadBottomPadding)
     }
     
     @ViewBuilder

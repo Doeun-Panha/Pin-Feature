@@ -18,26 +18,24 @@ struct HomeScreenView: View {
 extension HomeScreenView {
     private var Container: some View {
         ZStack {
-            Color(hex: "162634")
+            Color(.white.withAlphaComponent(0))
+                .background {
+                    Image("dummy-homeScreenView-Image")
+                        .resizable()
+                        .scaledToFill()
+                        .ignoresSafeArea()
+                }
                 .ignoresSafeArea()
             
-            VStack {
-                Button("Unlock") {
-                    withAnimation(.easeInOut(duration: 0.5)) {
-                        showPinScreen = true
-                    }
+            Button {
+                withAnimation(.easeInOut(duration: 0.5)) {
+                    showPinScreen = true
                 }
-                .font(.nunito(15, weight: .regular))
-                .foregroundStyle(.white)
-                .padding(.vertical, 10)
-                .padding(.horizontal, 20)
-                .background(
-                    RoundedRectangle(
-                        cornerRadius: 24, style: .continuous
-                    )
-                    .fill(Color.cyan.opacity(0.75))
-                )
+            } label: {
+                Color.clear
             }
+            .contentShape(Rectangle())
+            .ignoresSafeArea()
             
             if showPinScreen {
                 PinScreenView(
@@ -56,6 +54,23 @@ extension HomeScreenView {
                 .zIndex(1)
             }
         }
+//        .background {
+//            Image("dummy-homeScreenView-Image")
+//                .resizable()
+//                .scaledToFill()
+//                .ignoresSafeArea()
+//        }
+//        .overlay {
+//            if showPinScreen {
+//                PinScreenView(
+//                    onDismiss: { showPinScreen = false },
+//                    onSuccess: { showPinScreen = false }
+//                )
+//                .transition(.opacity)
+//                .zIndex(1)
+//            }
+//        }
+//        .animation(.easeInOut(duration: 0.5), value: showPinScreen)
     }
 }
 
