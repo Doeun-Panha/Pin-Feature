@@ -54,23 +54,6 @@ extension HomeScreenView {
                 .zIndex(1)
             }
         }
-//        .background {
-//            Image("dummy-homeScreenView-Image")
-//                .resizable()
-//                .scaledToFill()
-//                .ignoresSafeArea()
-//        }
-//        .overlay {
-//            if showPinScreen {
-//                PinScreenView(
-//                    onDismiss: { showPinScreen = false },
-//                    onSuccess: { showPinScreen = false }
-//                )
-//                .transition(.opacity)
-//                .zIndex(1)
-//            }
-//        }
-//        .animation(.easeInOut(duration: 0.5), value: showPinScreen)
     }
 }
 

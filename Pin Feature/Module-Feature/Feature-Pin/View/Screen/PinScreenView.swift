@@ -14,13 +14,26 @@ struct PinScreenView: View {
     @State private var viewModel: PinScreenViewModel = PinScreenViewModel()
     @State private var shakeOffset: CGFloat = 0
     
-    let profileImageSize: CGFloat = 80
-    let nameTextColor = "#ac9354"
-//    let pinDotSize: CGFloat = 18
-//    let keypadButtonSize: CGFloat = 65
+    private let nameTextColor = "#ac9354"
+    private let isDuo = UIDevice.current.name.localizedCaseInsensitiveContains("iPhone Duo")
     
     var body: some View {
-        containerView
+        NavigationStack {
+            containerView
+                .navigationBarBackButtonHidden(true)
+                .toolbar(isDuo ? .visible : .hidden, for: .navigationBar)
+                .toolbarBackground(.hidden, for: .navigationBar)
+                .toolbarColorScheme(.dark, for: .navigationBar)
+                .toolbar {
+                    ToolbarItem(placement: .topBarLeading) {
+                        Button {
+                            onDismiss()
+                        } label: {
+                            Image(systemName: "chevron.left")
+                        }
+                    }
+                }
+        }
     }
 }
 
@@ -42,63 +55,67 @@ extension PinScreenView {
             let keypadButtonSize = screenWidth * 0.175
             let keypadColumnSpacing = screenWidth * 0.11
             let keypadRowSpacing = screenHeight * 0.025
-            let keypadBottomPadding = screenHeight * (isCompact ? 0.02 : 0.08)
+            let keypadBottomPadding = screenHeight * (isDuo ? 0.02 : (isCompact ? 0.02 : 0.08))
             
             let actionButtonFontSize = screenWidth * 0.038
             let actionButtonPadding = screenWidth * 0.09
             
+            let showError = viewModel.errorTriggerCount > 0
+            let contentSpacing = screenHeight * 0.02
+            
             ZStack(alignment: .top) {
-//                Color(hex: "162634")
-//                    .ignoresSafeArea()
-                
-                topNavigationView(
-                    iconSize: backButtonIconSize,
-                    padding: backButtonPadding
-                )
-                .safeAreaPadding(.top, 5)
-                
+                if !isDuo {
+                    topNavigationView(
+                        iconSize: backButtonIconSize,
+                        padding: backButtonPadding
+                    )
+                    .safeAreaPadding(.top, 5)
+                }
+
                 VStack(spacing: 0) {
-                    VStack(spacing: 0) {
-                        Spacer()
-                        
+                    Spacer(minLength: 0)
+
+                    VStack(spacing: contentSpacing) {
                         profileSectionView(
                             imageSize: profileImageSize,
                             nameFontSize: nameFontSize,
                             bodyFontSize: bodyFontSize
                         )
                         
-                        Spacer()
-                        
                         pinRowView(
                             dotSize: pinDotSize,
-                            bodyFontSize: bodyFontSize
+                            bodyFontSize: bodyFontSize,
+                            spacing: contentSpacing
                         )
-                        
-                        Spacer(minLength: 20)
                     }
-                 
+
+                    Spacer(minLength: 20)
+                }
+                .safeAreaPadding(.top, 5)
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
+                .animation(.spring(response: 0.3, dampingFraction: 0.7), value: viewModel.errorTriggerCount)
+
+                .safeAreaInset(edge: .bottom, spacing: 0) {
                     VStack(spacing: 0) {
-                        Spacer()
-                        
                         keypadView(
                             size: keypadButtonSize,
                             rowSpacing: keypadRowSpacing,
                             columnSpacing: keypadColumnSpacing
                         )
-                        
+
                         Color.clear
                             .frame(height: keypadBottomPadding)
-                        
+
                         bottomActionsView(
                             size: actionButtonFontSize,
                             padding: actionButtonPadding
                         )
                     }
+                    .padding(.bottom, isDuo ? 0 : screenHeight * 0.03)
                 }
-                .frame(maxHeight: .infinity, alignment: .bottom)
-                .padding(.bottom, screenHeight * 0.03)
             }
         }
+        
         .background {
             ZStack {
                 Rectangle()
@@ -110,8 +127,6 @@ extension PinScreenView {
             }
             .ignoresSafeArea()
         }
-        
-        .toolbar(.hidden, for: .navigationBar)
         
         .onAppear {
             viewModel.onSuccessCallback = {
@@ -218,7 +233,6 @@ extension PinScreenView {
     }
     
     private var fallbackImageView: some View {
-        //Temp Profile image
         Image("profile-image")
             .resizable()
             .scaledToFill()
@@ -230,9 +244,10 @@ extension PinScreenView {
     
     private func pinRowView(
         dotSize: CGFloat,
-        bodyFontSize: CGFloat
+        bodyFontSize: CGFloat,
+        spacing: CGFloat
     ) -> some View {
-        VStack(spacing: 0) {
+        VStack(spacing: spacing) {
             HStack(spacing: 16) {
                 ForEach(0..<viewModel.pinLength, id: \.self) { index in
                     Circle()
@@ -249,9 +264,8 @@ extension PinScreenView {
                 Text(viewModel.errorMessage)
                     .font(.nunito(bodyFontSize, weight: .medium))
                     .foregroundStyle(.red)
-                    .padding(.bottom, 7)
                     .offset(x: shakeOffset)
-                    .offset(y: 20)
+                    .transition(.opacity.combined(with: .scale(scale: 0.9, anchor: .top)))
             }
         }
     }
