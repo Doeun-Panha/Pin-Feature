@@ -42,25 +42,26 @@ extension PinScreenView {
         GeometryReader { geometry in
             let screenWidth = geometry.size.width
             let screenHeight = geometry.size.height
+            let designAspect: CGFloat = 0.56
+            let unit = min(screenWidth, screenHeight * designAspect)
             let isCompact = screenHeight < 670
             
-            let backButtonIconSize = screenWidth * 0.05
-            let backButtonPadding = screenWidth * 0.04
+            let backButtonIconSize = unit * 0.05
+            let backButtonPadding = unit * 0.04
             
-            let profileImageSize = screenWidth * 0.215
-            let nameFontSize = screenWidth * 0.045
-            let bodyFontSize = screenWidth * 0.038
-            let pinDotSize = screenWidth * 0.05
+            let profileImageSize = unit * 0.215
+            let nameFontSize = unit * 0.045
+            let bodyFontSize = unit * 0.038
+            let pinDotSize = unit * 0.05
             
-            let keypadButtonSize = screenWidth * 0.175
-            let keypadColumnSpacing = screenWidth * 0.11
+            let keypadButtonSize = unit * 0.175
+            let keypadColumnSpacing = unit * 0.11
             let keypadRowSpacing = screenHeight * 0.025
             let keypadBottomPadding = screenHeight * (isDuo ? 0.02 : (isCompact ? 0.02 : 0.08))
             
-            let actionButtonFontSize = screenWidth * 0.038
-            let actionButtonPadding = screenWidth * 0.09
+            let actionButtonFontSize = unit * 0.038
+            let actionButtonPadding = unit * 0.09
             
-            let showError = viewModel.errorTriggerCount > 0
             let contentSpacing = screenHeight * 0.02
             
             ZStack(alignment: .top) {
@@ -92,6 +93,7 @@ extension PinScreenView {
                     Spacer(minLength: 20)
                 }
                 .safeAreaPadding(.top, 5)
+                .frame(maxWidth: unit)
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
                 .animation(.spring(response: 0.3, dampingFraction: 0.7), value: viewModel.errorTriggerCount)
 
@@ -111,6 +113,7 @@ extension PinScreenView {
                             padding: actionButtonPadding
                         )
                     }
+                    .frame(maxWidth: unit)
                     .padding(.bottom, isDuo ? 0 : screenHeight * 0.03)
                 }
             }
