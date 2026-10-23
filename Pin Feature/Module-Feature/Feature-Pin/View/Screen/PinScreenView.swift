@@ -15,18 +15,12 @@ struct PinScreenView: View {
     @State private var shakeOffset: CGFloat = 0
     @State private var pose: DuoPose = .noHinge
 
-    enum DuoPose {
-        case noHinge
-        case closed
-        case partiallyOpen
-        case fullyOpen
-    }
-
     private var isFullyOpen: Bool { pose == .fullyOpen }
     private var isPartiallyOpen: Bool { pose == .partiallyOpen }
 
-    private let isDuo = UIDevice.current.name.localizedCaseInsensitiveContains("iPhone Duo")
+    private let isDuo = DeviceInfo.isDuo
     private let nameTextColor = "#ac9354"
+    private let layoutAnimation: Animation = .smooth(duration: 0.45)
 
     var body: some View {
         content
@@ -89,27 +83,25 @@ extension PinScreenView {
     private var pinLayout: some View {
         GeometryReader { geometry in
             let fullWidth = geometry.size.width
-
             let useLeftHalf = isDuo && isPartiallyOpen && fullWidth > geometry.size.height
-            let usableWidth = useLeftHalf ? fullWidth / 2 : fullWidth
 
-            let m = Metrics(
-                size: CGSize(width: usableWidth, height: geometry.size.height),
-                isDuo: isDuo
-            )
+            SmoothSized(size: geometry.size) { size in
+                let m = Metrics(size: size, isDuo: isDuo)
 
-            ZStack(alignment: .top) {
-                if !isDuo {
-                    customBackButton(m)
-                }
-
-                upperSection(m)
-                    .safeAreaInset(edge: .bottom, spacing: 0) {
-                        lowerSection(m)
+                ZStack(alignment: .top) {
+                    if !isDuo {
+                        customBackButton(m)
                     }
+
+                    upperSection(m)
+                        .safeAreaInset(edge: .bottom, spacing: 0) {
+                            lowerSection(m)
+                        }
+                }
             }
+            .animation(layoutAnimation, value: geometry.size)
             .offset(x: useLeftHalf ? -fullWidth / 4 : 0)
-            .animation(.spring(response: 0.4, dampingFraction: 0.85), value: useLeftHalf)
+            .animation(layoutAnimation, value: useLeftHalf)
         }
     }
 
@@ -127,7 +119,7 @@ extension PinScreenView {
         .safeAreaPadding(.top, 5)
         .frame(maxWidth: m.unit)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
-        .animation(.spring(response: 0.3, dampingFraction: 0.7), value: viewModel.errorTriggerCount)
+        .animation(.spring(response: 0.3, dampingFraction: 1), value: viewModel.errorTriggerCount)
     }
 
     private func lowerSection(_ m: Metrics) -> some View {
@@ -161,14 +153,14 @@ extension PinScreenView {
         viewModel.onSuccessCallback = { onSuccess() }
         viewModel.loadProfile()
         
-//        Task {
-//            while true {
-//                viewModel.errorTriggerCount = 0
-//                try? await Task.sleep(for: .seconds(2))
-//                viewModel.errorTriggerCount = 1
-//                try? await Task.sleep(for: .seconds(2))
-//            }
-//        }
+        Task {
+            while true {
+                viewModel.errorTriggerCount = 0
+                try? await Task.sleep(for: .seconds(2))
+                viewModel.errorTriggerCount = 1
+                try? await Task.sleep(for: .seconds(2))
+            }
+        }
     }
 
     private func playErrorFeedback() {
@@ -344,26 +336,19 @@ extension PinScreenView {
     }
 }
 
-private struct HingeTracker: ViewModifier {
-    @Binding var pose: PinScreenView.DuoPose
+private struct SmoothSized<Content: View>: View, Animatable {
+    var size: CGSize
+    private let content: (CGSize) -> Content
 
-    func body(content: Content) -> some View {
-        if #available(anyAppleOS 27.1, *) {
-            content.onHingeChange { _, context in
-                guard let hinge = context.hinge else {
-                    pose = .noHinge
-                    return
-                }
-
-                switch hinge.status {
-                case .closed:        pose = .closed
-                case .partiallyOpen: pose = .partiallyOpen
-                case .fullyOpen:     pose = .fullyOpen
-                default:             break
-                }
-            }
-        } else {
-            content
-        }
+    init(size: CGSize, @ViewBuilder content: @escaping (CGSize) -> Content) {
+        self.size = size
+        self.content = content
     }
+
+    var animatableData: CGSize.AnimatableData {
+        get { size.animatableData }
+        set { size.animatableData = newValue }
+    }
+
+    var body: some View { content(size) }
 }

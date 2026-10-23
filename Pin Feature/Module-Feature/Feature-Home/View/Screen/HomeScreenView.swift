@@ -11,14 +11,7 @@ struct HomeScreenView: View {
     @State private var showPinScreen: Bool = true
     @State private var pose: DuoPose = .noHinge
     
-    enum DuoPose {
-        case noHinge
-        case closed
-        case partiallyOpen
-        case fullyOpen
-    }
-    
-    private let isDuo = UIDevice.current.name.localizedCaseInsensitiveContains("iPhone Duo")
+    private let isDuo = DeviceInfo.isDuo
     
     private var isUnfolded: Bool {
         pose == .partiallyOpen || pose == .fullyOpen
@@ -71,12 +64,13 @@ extension HomeScreenView {
     }
     
     private func homeImage(_ contentMode: ContentMode) -> some View {
-        Color.clear
-            .background {
-                Image("dummy-homeScreenView-Image")
-                        .resizable()
-                        .aspectRatio(contentMode: contentMode)
-            }
+        Color(hex: "093558")
+//            .background {
+//                Image("dummy-homeScreenView-Image")
+//                    .resizable()
+//                    .aspectRatio(contentMode: contentMode)
+//                
+//            }
             .ignoresSafeArea()
     }
 }
@@ -117,30 +111,6 @@ extension HomeScreenView {
     private func onSuccess() {
         withAnimation(.easeInOut(duration: 0.5)) {
             showPinScreen = false
-        }
-    }
-}
-
-private struct HingeTracker: ViewModifier {
-    @Binding var pose: HomeScreenView.DuoPose
-    
-    func body(content: Content) -> some View {
-        if #available(anyAppleOS 27.1, *) {
-            content.onHingeChange { _, context in
-                guard let hinge = context.hinge else {
-                    pose = .noHinge
-                    return
-                }
-                
-                switch hinge.status {
-                case .closed:        pose = .closed
-                case .partiallyOpen: pose = .partiallyOpen
-                case .fullyOpen:     pose = .fullyOpen
-                default:             break
-                }
-            }
-        } else {
-            content
         }
     }
 }
