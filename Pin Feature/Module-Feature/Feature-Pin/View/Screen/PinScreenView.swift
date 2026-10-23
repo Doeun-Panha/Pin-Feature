@@ -10,223 +10,238 @@ import SwiftUI
 struct PinScreenView: View {
     var onDismiss: () -> Void
     var onSuccess: () -> Void
-    
-    @State private var viewModel: PinScreenViewModel = PinScreenViewModel()
+
+    @State private var viewModel = PinScreenViewModel()
     @State private var shakeOffset: CGFloat = 0
-    
-    private let nameTextColor = "#ac9354"
+    @State private var pose: DuoPose = .noHinge
+
+    enum DuoPose {
+        case noHinge
+        case closed
+        case partiallyOpen
+        case fullyOpen
+    }
+
+    private var isFullyOpen: Bool { pose == .fullyOpen }
+    private var isPartiallyOpen: Bool { pose == .partiallyOpen }
+
     private let isDuo = UIDevice.current.name.localizedCaseInsensitiveContains("iPhone Duo")
-    
+    private let nameTextColor = "#ac9354"
+
     var body: some View {
-        NavigationStack {
-            containerView
-                .navigationBarBackButtonHidden(true)
-                .toolbar(isDuo ? .visible : .hidden, for: .navigationBar)
-                .toolbarBackground(.hidden, for: .navigationBar)
-                .toolbarColorScheme(.dark, for: .navigationBar)
-                .toolbar {
-                    ToolbarItem(placement: .topBarLeading) {
-                        Button {
-                            onDismiss()
-                        } label: {
-                            Image(systemName: "chevron.left")
-                        }
-                    }
+        content
+    }
+}
+
+private struct Metrics {
+    private static let designAspect: CGFloat = 0.56
+    private static let compactHeight: CGFloat = 670
+
+    let height: CGFloat
+    let unit: CGFloat
+    let isDuo: Bool
+
+    init(size: CGSize, isDuo: Bool) {
+        self.height = size.height
+        self.unit = min(size.width, size.height * Self.designAspect)
+        self.isDuo = isDuo
+    }
+
+    private var isCompact: Bool { height < Self.compactHeight }
+
+    var backIconSize: CGFloat { unit * 0.05 }
+    var backButtonPadding: CGFloat { unit * 0.04 }
+
+    var profileImageSize: CGFloat { unit * 0.215 }
+    var nameFontSize: CGFloat { unit * 0.045 }
+    var bodyFontSize: CGFloat { unit * 0.038 }
+    var pinDotSize: CGFloat { unit * 0.05 }
+    var contentSpacing: CGFloat { height * 0.02 }
+
+    var keypadButtonSize: CGFloat { unit * 0.175 }
+    var keypadColumnSpacing: CGFloat { unit * 0.11 }
+    var keypadRowSpacing: CGFloat { height * 0.025 }
+    var keypadBottomGap: CGFloat { height * ((isDuo || isCompact) ? 0.02 : 0.08) }
+
+    var actionFontSize: CGFloat { unit * 0.038 }
+    var actionHorizontalPadding: CGFloat { unit * 0.09 }
+    var bottomInset: CGFloat { isDuo ? 0 : height * 0.03 }
+}
+
+extension PinScreenView {
+    private var content: some View {
+        pinLayout
+            .ignoresSafeArea(.container, edges: (isFullyOpen || isPartiallyOpen) ? .horizontal : [])
+            .background { backgroundView }
+            .modifier(HingeTracker(pose: $pose))
+            .onAppear(perform: onAppear)
+            .onChange(of: viewModel.errorTriggerCount) { _, newValue in
+                guard newValue > 0 else { return }
+                playErrorFeedback()
+            }
+            .navigationBarBackButtonHidden(true)
+            .toolbar(isDuo ? .visible : .hidden, for: .navigationBar)
+            .toolbarBackground(.hidden, for: .navigationBar)
+            .toolbarColorScheme(.dark, for: .navigationBar)
+            .toolbar { backToolbarItem }
+    }
+
+    private var pinLayout: some View {
+        GeometryReader { geometry in
+            let fullWidth = geometry.size.width
+
+            let useLeftHalf = isDuo && isPartiallyOpen && fullWidth > geometry.size.height
+            let usableWidth = useLeftHalf ? fullWidth / 2 : fullWidth
+
+            let m = Metrics(
+                size: CGSize(width: usableWidth, height: geometry.size.height),
+                isDuo: isDuo
+            )
+
+            ZStack(alignment: .top) {
+                if !isDuo {
+                    customBackButton(m)
                 }
+
+                upperSection(m)
+                    .safeAreaInset(edge: .bottom, spacing: 0) {
+                        lowerSection(m)
+                    }
+            }
+            .offset(x: useLeftHalf ? -fullWidth / 4 : 0)
+            .animation(.spring(response: 0.4, dampingFraction: 0.85), value: useLeftHalf)
+        }
+    }
+
+    private func upperSection(_ m: Metrics) -> some View {
+        VStack(spacing: 0) {
+            Spacer(minLength: 0)
+
+            VStack(spacing: m.contentSpacing) {
+                profileSectionView(m)
+                pinRowView(m)
+            }
+
+            Spacer(minLength: 20)
+        }
+        .safeAreaPadding(.top, 5)
+        .frame(maxWidth: m.unit)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
+        .animation(.spring(response: 0.3, dampingFraction: 0.7), value: viewModel.errorTriggerCount)
+    }
+
+    private func lowerSection(_ m: Metrics) -> some View {
+        VStack(spacing: 0) {
+            keypadView(m)
+
+            Color.clear
+                .frame(height: m.keypadBottomGap)
+
+            bottomActionsView(m)
+        }
+        .frame(maxWidth: m.unit)
+        .padding(.bottom, m.bottomInset)
+    }
+}
+
+extension PinScreenView {
+    private var backgroundView: some View {
+        ZStack {
+            Rectangle()
+                .fill(.ultraThinMaterial)
+                .environment(\.colorScheme, .dark)
+
+            Color(hex: "0D1926")
+                .opacity(0.65)
+        }
+        .ignoresSafeArea()
+    }
+
+    private func onAppear() {
+        viewModel.onSuccessCallback = { onSuccess() }
+        viewModel.loadProfile()
+        
+//        Task {
+//            while true {
+//                viewModel.errorTriggerCount = 0
+//                try? await Task.sleep(for: .seconds(2))
+//                viewModel.errorTriggerCount = 1
+//                try? await Task.sleep(for: .seconds(2))
+//            }
+//        }
+    }
+
+    private func playErrorFeedback() {
+        UINotificationFeedbackGenerator().notificationOccurred(.error)
+
+        withAnimation(.spring(response: 0.2, dampingFraction: 0.2)) {
+            shakeOffset = 15
+        }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+            shakeOffset = 0
         }
     }
 }
 
 extension PinScreenView {
-    private var containerView: some View {
-        GeometryReader { geometry in
-            let screenWidth = geometry.size.width
-            let screenHeight = geometry.size.height
-            let designAspect: CGFloat = 0.56
-            let unit = min(screenWidth, screenHeight * designAspect)
-            let isCompact = screenHeight < 670
-            
-            let backButtonIconSize = unit * 0.05
-            let backButtonPadding = unit * 0.04
-            
-            let profileImageSize = unit * 0.215
-            let nameFontSize = unit * 0.045
-            let bodyFontSize = unit * 0.038
-            let pinDotSize = unit * 0.05
-            
-            let keypadButtonSize = unit * 0.175
-            let keypadColumnSpacing = unit * 0.11
-            let keypadRowSpacing = screenHeight * 0.025
-            let keypadBottomPadding = screenHeight * (isDuo ? 0.02 : (isCompact ? 0.02 : 0.08))
-            
-            let actionButtonFontSize = unit * 0.038
-            let actionButtonPadding = unit * 0.09
-            
-            let contentSpacing = screenHeight * 0.02
-            
-            ZStack(alignment: .top) {
-                if !isDuo {
-                    topNavigationView(
-                        iconSize: backButtonIconSize,
-                        padding: backButtonPadding
-                    )
-                    .safeAreaPadding(.top, 5)
-                }
-
-                VStack(spacing: 0) {
-                    Spacer(minLength: 0)
-
-                    VStack(spacing: contentSpacing) {
-                        profileSectionView(
-                            imageSize: profileImageSize,
-                            nameFontSize: nameFontSize,
-                            bodyFontSize: bodyFontSize
-                        )
-                        
-                        pinRowView(
-                            dotSize: pinDotSize,
-                            bodyFontSize: bodyFontSize,
-                            spacing: contentSpacing
-                        )
-                    }
-
-                    Spacer(minLength: 20)
-                }
-                .safeAreaPadding(.top, 5)
-                .frame(maxWidth: unit)
-                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
-                .animation(.spring(response: 0.3, dampingFraction: 0.7), value: viewModel.errorTriggerCount)
-
-                .safeAreaInset(edge: .bottom, spacing: 0) {
-                    VStack(spacing: 0) {
-                        keypadView(
-                            size: keypadButtonSize,
-                            rowSpacing: keypadRowSpacing,
-                            columnSpacing: keypadColumnSpacing
-                        )
-
-                        Color.clear
-                            .frame(height: keypadBottomPadding)
-
-                        bottomActionsView(
-                            size: actionButtonFontSize,
-                            padding: actionButtonPadding
-                        )
-                    }
-                    .frame(maxWidth: unit)
-                    .padding(.bottom, isDuo ? 0 : screenHeight * 0.03)
-                }
-            }
-        }
-        
-        .background {
-            ZStack {
-                Rectangle()
-                    .fill(.ultraThinMaterial)
-                    .environment(\.colorScheme, .dark)
-                
-                Color(hex: "0D1926")
-                    .opacity(0.65)
-            }
-            .ignoresSafeArea()
-        }
-        
-        .onAppear {
-            viewModel.onSuccessCallback = {
-                onSuccess()
-            }
-            viewModel.loadProfile()
-            
-            Task {
-                while true {
-                    viewModel.errorTriggerCount = 0
-                    try? await Task.sleep(for: .seconds(2))
-                    viewModel.errorTriggerCount = 1
-                    try? await Task.sleep(for: .seconds(2))
-                }
-            }
-        }
-        
-        .onChange(of: viewModel.errorTriggerCount) { oldValue, newValue in
-            guard newValue > 0 else { return }
-            
-            let generator = UINotificationFeedbackGenerator()
-            generator.notificationOccurred(.error)
-            
-            withAnimation(.spring(response: 0.2, dampingFraction: 0.2)) {
-                shakeOffset = 15
-            }
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
-                shakeOffset = 0
-            }
-        }
-        
-    }
-    
-    private func topNavigationView(
-        iconSize: CGFloat,
-        padding: CGFloat
-    ) -> some View {
-        HStack {
-            Button(action: {
-                onDismiss()
-            }) {
+    private var backToolbarItem: some ToolbarContent {
+        ToolbarItem(placement: .topBarLeading) {
+            Button(action: onDismiss) {
                 Image(systemName: "chevron.left")
-                    .font(.system(size: iconSize, weight: .semibold))
+            }
+        }
+    }
+
+    private func customBackButton(_ m: Metrics) -> some View {
+        HStack {
+            Button(action: onDismiss) {
+                Image(systemName: "chevron.left")
+                    .font(.system(size: m.backIconSize, weight: .semibold))
                     .foregroundStyle(.white)
-                    .padding(padding)
+                    .padding(m.backButtonPadding)
                     .background(Circle().fill(Color.white.opacity(0.15)))
             }
-            
+
             Spacer()
         }
         .padding(.horizontal)
+        .safeAreaPadding(.top, 5)
     }
-    
-    private func profileSectionView(
-        imageSize: CGFloat,
-        nameFontSize: CGFloat,
-        bodyFontSize: CGFloat
-    ) -> some View {
+}
+
+extension PinScreenView {
+    private func profileSectionView(_ m: Metrics) -> some View {
         VStack(spacing: 14) {
             VStack(spacing: 8) {
-                profileImageView(imageSize: imageSize)
-                    .frame(width: imageSize, height: imageSize)
+                profileImageView
+                    .frame(width: m.profileImageSize, height: m.profileImageSize)
                     .clipShape(Circle())
                     .overlay(Circle().stroke(Color.white, lineWidth: 0.5))
-                
+
                 Text(viewModel.displayName)
-                    .font(.nunito(nameFontSize, weight: .semibold))
+                    .font(.nunito(m.nameFontSize, weight: .semibold))
                     .foregroundStyle(Color(hex: nameTextColor))
             }
-            
+
             Text(viewModel.displayPhone)
-                .font(.nunito(bodyFontSize, weight: .medium))
+                .font(.nunito(m.bodyFontSize, weight: .medium))
                 .foregroundStyle(.white)
-            
+
             Text("Please Enter PIN")
-                .font(.nunito(bodyFontSize, weight: .medium))
+                .font(.nunito(m.bodyFontSize, weight: .medium))
                 .foregroundStyle(.white)
         }
     }
-    
+
     @ViewBuilder
-    private func profileImageView(imageSize: CGFloat) -> some View {
+    private var profileImageView: some View {
         if let url = viewModel.profileImageURL {
             AsyncImage(url: url) { phase in
-                switch phase {
-                case .empty:
-                    fallbackImageView
-                    
-                case .success(let image):
+                if let image = phase.image {
                     image
                         .resizable()
                         .scaledToFill()
-                    
-                case .failure(_):
-                    fallbackImageView
-                    
-                @unknown default:
+                } else {
                     fallbackImageView
                 }
             }
@@ -234,75 +249,65 @@ extension PinScreenView {
             fallbackImageView
         }
     }
-    
+
     private var fallbackImageView: some View {
         Image("profile-image")
             .resizable()
             .scaledToFill()
-        
-//        Image("nil-image-placeholder")
-//            .resizable()
-//            .scaledToFill()
     }
-    
-    private func pinRowView(
-        dotSize: CGFloat,
-        bodyFontSize: CGFloat,
-        spacing: CGFloat
-    ) -> some View {
-        VStack(spacing: spacing) {
+
+    private func pinRowView(_ m: Metrics) -> some View {
+        VStack(spacing: m.contentSpacing) {
             HStack(spacing: 16) {
                 ForEach(0..<viewModel.pinLength, id: \.self) { index in
                     Circle()
                         .stroke(Color.white, lineWidth: 0.75)
-                        .frame(width: dotSize, height: dotSize)
+                        .frame(width: m.pinDotSize, height: m.pinDotSize)
                         .background(
                             Circle()
                                 .fill(index < viewModel.enteredPin.count ? Color.white : Color.clear)
                         )
                 }
             }
-            
+
             if viewModel.errorTriggerCount > 0 {
                 Text(viewModel.errorMessage)
-                    .font(.nunito(bodyFontSize, weight: .medium))
+                    .font(.nunito(m.bodyFontSize, weight: .medium))
                     .foregroundStyle(.red)
                     .offset(x: shakeOffset)
                     .transition(.opacity.combined(with: .scale(scale: 0.9, anchor: .top)))
             }
         }
     }
-    
-    private func keypadView(
-        size: CGFloat,
-        rowSpacing: CGFloat,
-        columnSpacing: CGFloat
-    ) -> some View {
-        VStack(spacing: rowSpacing) {
-            let rows = [
-                ["1", "2", "3"],
-                ["4", "5", "6"],
-                ["7", "8", "9"],
-                ["", "0", ""]
-            ]
-            
-            ForEach(rows, id: \.self) { row in
-                HStack(spacing: columnSpacing) {
-                    ForEach(row, id: \.self) { digit in
-                        if digit.isEmpty {
-                            Color.clear
-                                .frame(width: size, height: size)
-                        } else {
-                            keypadButton(label: digit, size: size) {
+}
+
+extension PinScreenView {
+    private static let keypadRows: [[String?]] = [
+        ["1", "2", "3"],
+        ["4", "5", "6"],
+        ["7", "8", "9"],
+        [nil, "0", nil]
+    ]
+
+    private func keypadView(_ m: Metrics) -> some View {
+        VStack(spacing: m.keypadRowSpacing) {
+            ForEach(Array(Self.keypadRows.enumerated()), id: \.offset) { _, row in
+                HStack(spacing: m.keypadColumnSpacing) {
+                    ForEach(Array(row.enumerated()), id: \.offset) { _, digit in
+                        if let digit {
+                            keypadButton(label: digit, size: m.keypadButtonSize) {
                                 viewModel.appendDigit(digit)
                             }
+                        } else {
+                            Color.clear
+                                .frame(width: m.keypadButtonSize, height: m.keypadButtonSize)
                         }
                     }
                 }
             }
         }
     }
-    
+
     private func keypadButton(
         label: String,
         size: CGFloat,
@@ -314,35 +319,51 @@ extension PinScreenView {
                 .foregroundStyle(.white)
                 .frame(width: size, height: size)
                 .clipShape(Circle())
-                .overlay(
-                    Circle()
-                        .stroke(Color.white, lineWidth: 1)
-                )
+                .overlay(Circle().stroke(Color.white, lineWidth: 1))
                 .shadow(color: Color.black.opacity(0.15), radius: 6, x: 0, y: 3)
         }
     }
-    
-    private func bottomActionsView(
-        size: CGFloat,
-        padding: CGFloat
-    ) -> some View {
+
+    private func bottomActionsView(_ m: Metrics) -> some View {
         HStack {
             Button("Forget PIN") {
                 viewModel.forgetPIN()
             }
-            .font(.nunito(size, weight: .medium))
-            .foregroundStyle(.white)
-            
+
             Spacer()
-            
+
             Button(viewModel.secondaryButtonTitle) {
                 viewModel.handleSecondaryAction {
                     onDismiss()
                 }
             }
-            .font(.nunito(size, weight: .medium))
-            .foregroundStyle(.white)
         }
-        .padding(.horizontal, padding)
+        .font(.nunito(m.actionFontSize, weight: .medium))
+        .foregroundStyle(.white)
+        .padding(.horizontal, m.actionHorizontalPadding)
+    }
+}
+
+private struct HingeTracker: ViewModifier {
+    @Binding var pose: PinScreenView.DuoPose
+
+    func body(content: Content) -> some View {
+        if #available(anyAppleOS 27.1, *) {
+            content.onHingeChange { _, context in
+                guard let hinge = context.hinge else {
+                    pose = .noHinge
+                    return
+                }
+
+                switch hinge.status {
+                case .closed:        pose = .closed
+                case .partiallyOpen: pose = .partiallyOpen
+                case .fullyOpen:     pose = .fullyOpen
+                default:             break
+                }
+            }
+        } else {
+            content
+        }
     }
 }

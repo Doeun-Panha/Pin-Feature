@@ -20,101 +20,131 @@ struct HomeScreenView: View {
     
     private let isDuo = UIDevice.current.name.localizedCaseInsensitiveContains("iPhone Duo")
     
+    private var isUnfolded: Bool {
+        pose == .partiallyOpen || pose == .fullyOpen
+    }
+    
     var body: some View {
-        if #available(anyAppleOS 27.1, *) {
-            Container
-                .onHingeChange { _, context in
-                    guard let hinge = context.hinge else {
-                        pose = .noHinge
-                        return
-                    }
-                    
-                    switch hinge.status {
-                    case .closed:           pose = .closed
-                    case .partiallyOpen:    pose = .partiallyOpen
-                    case .fullyOpen:        pose = .fullyOpen
-                    default:                break
-                    }
-                }
-        } else {
-            Container
-        }
+        container
+            .modifier(HingeTracker(pose: $pose))
     }
 }
 
 extension HomeScreenView {
-    private var Container: some View {
+    private var container: some View {
         NavigationStack {
             ZStack {
                 Color(hex: "093558")
                     .ignoresSafeArea()
                 
-                if isDuo, #available(anyAppleOS 27.1, *) {
-                    if pose == .partiallyOpen || pose == .fullyOpen {
-                        ArrangementView {
-                            Color(.clear)
-                                .background {
-                                    Image("dummy-homeScreenView-Image")
-                                        .resizable()
-                                        .scaledToFit()
-                                }
-                                .ignoresSafeArea()
-                        } secondary: {
-                            Color(.clear)
-                                .background {
-                                    Image("dummy-homeScreenView-Image")
-                                        .resizable()
-                                        .scaledToFit()
-                                }
-                                .ignoresSafeArea()
-                        }
-                        .arrangementViewStyle(.split.axes(.horizontal))
-                    } else {
-                        Color(.clear)
-                            .background {
-                                Image("dummy-homeScreenView-Image")
-                                    .resizable()
-                                    .scaledToFit()
-                            }
-                            .ignoresSafeArea()
-                    }
-                } else {
-                    Color(.clear)
-                        .background {
-                            Image("dummy-homeScreenView-Image")
-                                .resizable()
-                                .scaledToFill()
-                        }
-                        .ignoresSafeArea()
-                }
+                background
                 
-                Button {
-                    withAnimation(.easeInOut(duration: 0.5)) {
-                        showPinScreen = true
-                    }
-                } label: {
-                    Color.clear
-                }
-                .contentShape(Rectangle())
-                .ignoresSafeArea()
+                showPinTapArea
                 
-                if showPinScreen {
-                    PinScreenView(
-                        onDismiss: {
-                            withAnimation(.easeInOut(duration: 0.5)) {
-                                showPinScreen = false
-                            }
-                        },
-                        onSuccess: {
-                            withAnimation(.easeInOut(duration: 0.5)) {
-                                showPinScreen = false
-                            }
-                        }
-                    )
-                    .transition(.opacity)
-                    .zIndex(1)
-                }
+                pinLayer
             }
         }
     }
+    
+    @ViewBuilder
+    private var background: some View {
+        if isDuo, #available(anyAppleOS 27.1, *) {
+            duoBackground
+        } else {
+            homeImage(.fill)
+        }
+    }
+    
+    @available(anyAppleOS 27.1, *)
+    @ViewBuilder
+    private var duoBackground: some View {
+        if isUnfolded {
+            ArrangementView {
+                homeImage(.fit)
+            } secondary: {
+                homeImage(.fit)
+            }
+            .arrangementViewStyle(.split.axes(.horizontal))
+        } else {
+            homeImage(.fit)
+        }
+    }
+    
+    private func homeImage(_ contentMode: ContentMode) -> some View {
+        Color.clear
+            .background {
+                Image("dummy-homeScreenView-Image")
+                        .resizable()
+                        .aspectRatio(contentMode: contentMode)
+            }
+            .ignoresSafeArea()
+    }
+}
+
+extension HomeScreenView {
+    private var showPinTapArea: some View {
+        Button(action: showPin) {
+            Color.clear
+        }
+        .contentShape(Rectangle())
+        .ignoresSafeArea()
+    }
+    
+    @ViewBuilder
+    private var pinLayer: some View {
+        if showPinScreen {
+            PinScreenView(
+                onDismiss: onDismiss,
+                onSuccess: onSuccess
+            )
+            .transition(.opacity)
+            .zIndex(1)
+        }
+    }
+    
+    private func showPin() {
+        withAnimation(.easeInOut(duration: 0.5)) {
+            showPinScreen = true
+        }
+    }
+    
+    private func onDismiss() {
+        withAnimation(.easeInOut(duration: 0.5)) {
+            showPinScreen = false
+        }
+    }
+    
+    private func onSuccess() {
+        withAnimation(.easeInOut(duration: 0.5)) {
+            showPinScreen = false
+        }
+    }
+}
+
+private struct HingeTracker: ViewModifier {
+    @Binding var pose: HomeScreenView.DuoPose
+    
+    func body(content: Content) -> some View {
+        if #available(anyAppleOS 27.1, *) {
+            content.onHingeChange { _, context in
+                guard let hinge = context.hinge else {
+                    pose = .noHinge
+                    return
+                }
+                
+                switch hinge.status {
+                case .closed:        pose = .closed
+                case .partiallyOpen: pose = .partiallyOpen
+                case .fullyOpen:     pose = .fullyOpen
+                default:             break
+                }
+            }
+        } else {
+            content
+        }
+    }
+}
+
+#Preview {
+    HomeScreenView()
 }
