@@ -1,0 +1,116 @@
+{
+  "sourceLanguage" : "en",
+  "strings" : {
+    "0085: Please Enter the Correct PIN" : {
+      "localizations" : {
+        "km" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "0085: សូមបញ្ចូលលេខកូដសម្ងាត់ឱ្យបានត្រឹមត្រូវ"
+          }
+        },
+        "lo" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "0085: ກະລຸນາປ້ອນລະຫັດ PIN ໃຫ້ຖືກຕ້ອງ"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "0085: 请输入正确的 PIN 码"
+          }
+        }
+      }
+    },
+    "Cancel" : {
+      "localizations" : {
+        "km" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "បោះបង់"
+          }
+        },
+        "lo" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ຍົກເລີກ"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "取消"
+          }
+        }
+      }
+    },
+    "Delete" : {
+      "localizations" : {
+        "km" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "លុប"
+          }
+        },
+        "lo" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ລຶບ"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "删除"
+          }
+        }
+      }
+    },
+    "Forget PIN" : {
+      "localizations" : {
+        "km" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ភ្លេចលេខកូដសម្ងាត់"
+          }
+        },
+        "lo" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ລືມລະຫັດ PIN"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "忘记 PIN 码"
+          }
+        }
+      }
+    },
+    "Please Enter PIN" : {
+      "localizations" : {
+        "km" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "សូមបញ្ចូលលេខកូដសម្ងាត់"
+          }
+        },
+        "lo" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ກະລຸນາປ້ອນລະຫັດ PIN"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "请输入 PIN 码"
+          }
+        }
+      }
+    }
+  },
+  "version" : "1.3"
+}

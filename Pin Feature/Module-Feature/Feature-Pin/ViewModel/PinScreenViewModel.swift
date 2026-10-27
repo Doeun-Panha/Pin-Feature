@@ -41,14 +41,14 @@ final class PinScreenViewModel {
     }
     
     var secondaryButtonTitle: String {
-        return enteredPin.isEmpty ? "Cancel" : "Delete"
+        return enteredPin.isEmpty ? String(localized: "Cancel") : String(localized: "Delete")
     }
     
     var enteredPin: String = ""
     var errorTriggerCount: Int = 0
     
     //Temp default error
-    let errorMessage = "0085: Please Enter the Correct PIN"
+    let errorMessage = String(localized: "0085: Please Enter the Correct PIN")
     
     var onSuccessCallback: (() -> Void)?
 }

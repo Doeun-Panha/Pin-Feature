@@ -4,6 +4,9 @@
 <dict>
 	<key>UIAppFonts</key>
 	<array>
+		<string>Phetsarath-Regular.ttf</string>
+		<string>Phetsarath-Bold.ttf</string>
+		<string>NotoSansKhmer-VariableFont_wdth,wght.ttf</string>
 		<string>Nunito-VariableFont_wght.ttf</string>
 	</array>
 </dict>

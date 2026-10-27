@@ -14,6 +14,7 @@ struct PinScreenView: View {
     @State private var viewModel = PinScreenViewModel()
     @State private var shakeOffset: CGFloat = 0
     @State private var pose: DuoPose = .noHinge
+    @State private var isAppeared: Bool = false
 
     private var isFullyOpen: Bool { pose == .fullyOpen }
     private var isPartiallyOpen: Bool { pose == .partiallyOpen }
@@ -68,16 +69,32 @@ extension PinScreenView {
             .ignoresSafeArea(.container, edges: (isFullyOpen || isPartiallyOpen) ? .horizontal : [])
             .background { backgroundView }
             .modifier(HingeTracker(pose: $pose))
-            .onAppear(perform: onAppear)
+            .onAppear{
+                onAppear()
+                
+                withAnimation(.easeInOut(duration: 0.4).delay(1)) {
+                    isAppeared = true
+                }
+            }
             .onChange(of: viewModel.errorTriggerCount) { _, newValue in
                 guard newValue > 0 else { return }
                 playErrorFeedback()
             }
-            .navigationBarBackButtonHidden(true)
-            .toolbar(isDuo ? .visible : .hidden, for: .navigationBar)
-            .toolbarBackground(.hidden, for: .navigationBar)
-            .toolbarColorScheme(.dark, for: .navigationBar)
-            .toolbar { backToolbarItem }
+//            .navigationBarBackButtonHidden(true)
+        
+//            .toolbar(isDuo ? .visible : .hidden, for: .navigationBar)
+//            .toolbarBackground(.hidden, for: .navigationBar)
+//            .toolbarColorScheme(.dark, for: .navigationBar)
+            .toolbar {
+                if isDuo {
+                    ToolbarItem(placement: .topBarLeading) {
+                        Button(action: onDismiss) {
+                            Image(systemName: "chevron.left")
+                        }
+                        .opacity(isAppeared ? 1 : 0)
+                    }
+                }
+            }
     }
 
     private var pinLayout: some View {
@@ -153,14 +170,14 @@ extension PinScreenView {
         viewModel.onSuccessCallback = { onSuccess() }
         viewModel.loadProfile()
         
-        Task {
-            while true {
-                viewModel.errorTriggerCount = 0
-                try? await Task.sleep(for: .seconds(2))
-                viewModel.errorTriggerCount = 1
-                try? await Task.sleep(for: .seconds(2))
-            }
-        }
+//        Task {
+//            while true {
+//                viewModel.errorTriggerCount = 0
+//                try? await Task.sleep(for: .seconds(2))
+//                viewModel.errorTriggerCount = 1
+//                try? await Task.sleep(for: .seconds(2))
+//            }
+//        }
     }
 
     private func playErrorFeedback() {
@@ -211,16 +228,16 @@ extension PinScreenView {
                     .overlay(Circle().stroke(Color.white, lineWidth: 0.5))
 
                 Text(viewModel.displayName)
-                    .font(.nunito(m.nameFontSize, weight: .semibold))
+                    .appFont(m.nameFontSize, weight: .semibold)
                     .foregroundStyle(Color(hex: nameTextColor))
             }
 
             Text(viewModel.displayPhone)
-                .font(.nunito(m.bodyFontSize, weight: .medium))
+                .appFont(m.bodyFontSize, weight: .medium)
                 .foregroundStyle(.white)
 
             Text("Please Enter PIN")
-                .font(.nunito(m.bodyFontSize, weight: .medium))
+                .appFont(m.bodyFontSize, weight: .medium)
                 .foregroundStyle(.white)
         }
     }
@@ -264,8 +281,12 @@ extension PinScreenView {
 
             if viewModel.errorTriggerCount > 0 {
                 Text(viewModel.errorMessage)
-                    .font(.nunito(m.bodyFontSize, weight: .medium))
+                    .appFont(m.bodyFontSize, weight: .medium)
                     .foregroundStyle(.red)
+                    .lineLimit(2)
+                    .multilineTextAlignment(.center)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .frame(maxWidth: .infinity)
                     .offset(x: shakeOffset)
                     .transition(.opacity.combined(with: .scale(scale: 0.9, anchor: .top)))
             }
@@ -330,7 +351,7 @@ extension PinScreenView {
                 }
             }
         }
-        .font(.nunito(m.actionFontSize, weight: .medium))
+        .appFont(m.actionFontSize, weight: .medium)
         .foregroundStyle(.white)
         .padding(.horizontal, m.actionHorizontalPadding)
     }

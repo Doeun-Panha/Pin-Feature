@@ -32,9 +32,30 @@ extension HomeScreenView {
                 
                 background
                 
-                showPinTapArea
+//                showPinTapArea
                 
                 pinLayer
+            }
+            .toolbar {
+                if !showPinScreen {
+                    ToolbarItem(placement: .topBarTrailing) {
+                        Button(action: showPin) {
+                            Image(systemName: "lock.open")
+                        }
+                    }
+                    
+                    if #available(iOS 26.0, *) {
+                        ToolbarSpacer(.fixed, placement: .topBarLeading)
+                    }
+                    
+                    ToolbarItem(placement: .topBarLeading) {
+                        Button(action: showPin) {
+                            Image("khmer-flag-image")
+                                .resizable()
+                                .scaledToFill()
+                        }
+                    }
+                }
             }
         }
     }
@@ -113,8 +134,4 @@ extension HomeScreenView {
             showPinScreen = false
         }
     }
-}
-
-#Preview {
-    HomeScreenView()
 }
