@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct HomeScreenView: View {
-    @State private var showPinScreen: Bool = true
+    @State private var showPinScreen: Bool = false
     @State private var pose: DuoPose = .noHinge
     @State private var pinOpacity: Double = 0
     
@@ -35,9 +35,20 @@ extension HomeScreenView {
                 
                 background
                 
-//                showPinTapArea
-                
-//                pinLayer
+                if showPinScreen {
+                    Group {
+                        if isDuo {
+                            NavigationStack {
+                                PinScreenView(onDismiss: hidePin, onSuccess: onSuccess)
+                            }
+                        } else {
+                            PinScreenView(onDismiss: hidePin, onSuccess: onSuccess)
+                        }
+                    }
+                    .opacity(pinOpacity)
+                    .zIndex(1)
+                    .transition(.opacity)
+                }
             }
             .toolbar {
                 if !showPinScreen {
@@ -49,35 +60,16 @@ extension HomeScreenView {
                 }
             }
         }
-        .fullScreenCover(isPresented: $showPinScreen) {
-            NavigationStack {
-                PinScreenView(onDismiss: hidePin, onSuccess: hidePin)
-            }
-            .opacity(pinOpacity)
-            .presentationBackground(.clear)
-            .onAppear {
-                withAnimation(pinFade) { pinOpacity = 1 }
-            }
-        }
-    }
-    
-    private var instant: Transaction {
-        var transaction = Transaction(animation: nil)
-        transaction.disablesAnimations = true
-        return transaction
-    }
-
-    private func showPin() {
-        pinOpacity = 0
-        withTransaction(instant) { showPinScreen = true }
-    }
-
-    private func hidePin() {
-        withAnimation(pinFade, completionCriteria: .logicallyComplete) {
-            pinOpacity = 0
-        } completion: {
-            withTransaction(instant) { showPinScreen = false }
-        }
+//        .fullScreenCover(isPresented: $showPinScreen) {
+//            NavigationStack {
+//                PinScreenView(onDismiss: hidePin, onSuccess: hidePin)
+//            }
+//            .opacity(pinOpacity)
+//            .presentationBackground(.clear)
+//            .onAppear {
+//                withAnimation(pinFade) { pinOpacity = 1 }
+//            }
+//        }
     }
     
     @ViewBuilder
@@ -117,41 +109,44 @@ extension HomeScreenView {
 }
 
 extension HomeScreenView {
-    private var showPinTapArea: some View {
-        Button(action: showPin) {
-            Color.clear
-        }
-        .contentShape(Rectangle())
-        .ignoresSafeArea()
+    private var instant: Transaction {
+        var transaction = Transaction(animation: nil)
+        transaction.disablesAnimations = true
+        return transaction
     }
     
-    @ViewBuilder
-    private var pinLayer: some View {
-        if showPinScreen {
-            PinScreenView(
-                onDismiss: onDismiss,
-                onSuccess: onSuccess
-            )
-            .transition(.opacity)
-            .zIndex(1)
+    private func showPin() {
+        pinOpacity = 0
+        showPinScreen = true
+        withAnimation(pinFade) {
+            pinOpacity = 1
         }
     }
     
+    private func hidePin() {
+        withAnimation(pinFade) {
+            pinOpacity = 0
+        } completion: {
+            showPinScreen = false
+        }
+    }
+
 //    private func showPin() {
-//        withAnimation(.easeInOut(duration: 0.5)) {
-//            showPinScreen = true
+//        pinOpacity = 0
+//        withTransaction(instant) { showPinScreen = true }
+//    }
+//    
+//    private func hidePin() {
+//        withAnimation(pinFade, completionCriteria: .logicallyComplete) {
+//            pinOpacity = 0
+//        } completion: {
+//            withTransaction(instant) { showPinScreen = false }
 //        }
 //    }
     
-    private func onDismiss() {
-        withAnimation(.easeInOut(duration: 0.5)) {
-            showPinScreen = false
-        }
-    }
-    
     private func onSuccess() {
-        withAnimation(.easeInOut(duration: 0.5)) {
-            showPinScreen = false
-        }
+        hidePin()
+        
+        //OnSuccess Logic
     }
 }

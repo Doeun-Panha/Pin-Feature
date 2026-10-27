@@ -14,7 +14,6 @@ struct PinScreenView: View {
     @State private var viewModel = PinScreenViewModel()
     @State private var shakeOffset: CGFloat = 0
     @State private var pose: DuoPose = .noHinge
-    @State private var isAppeared: Bool = false
     @State private var isLayoutSettled = false
 
     private var isFullyOpen: Bool { pose == .fullyOpen }
@@ -70,15 +69,9 @@ extension PinScreenView {
             .ignoresSafeArea(.container, edges: (isFullyOpen || isPartiallyOpen) ? .horizontal : [])
             .background { backgroundView }
             .modifier(HingeTracker(pose: $pose))
-            .onAppear{
-                onAppear()
-                
-                withAnimation(.easeInOut(duration: 0.4).delay(1)) {
-                    isAppeared = true
-                }
-            }
+            .onAppear{ setup()}
             .task {
-                try? await Task.sleep(for: .seconds(0.6))   // a bit longer than the 0.45s fade-in
+                try? await Task.sleep(for: .seconds(0.6)) // after the cover's fade-in finishes
                 isLayoutSettled = true
             }
             .onChange(of: viewModel.errorTriggerCount) { _, newValue in
@@ -91,9 +84,7 @@ extension PinScreenView {
             .toolbarColorScheme(.dark, for: .navigationBar)
             .toolbar {
                 if isDuo {
-                    ToolbarItem(placement: .topBarLeading) {
-                        Button(action: onDismiss) { Image(systemName: "chevron.left") }
-                    }
+                    backToolbarItem
                 }
             }
     }
@@ -102,7 +93,6 @@ extension PinScreenView {
         GeometryReader { geometry in
             let fullWidth = geometry.size.width
             let useLeftHalf = isDuo && isPartiallyOpen && fullWidth > geometry.size.height
-            let _ = print("size:", geometry.size, "pose:", pose)
 
             SmoothSized(size: geometry.size) { size in
                 let m = Metrics(size: size, isDuo: isDuo)
@@ -168,7 +158,7 @@ extension PinScreenView {
         .ignoresSafeArea()
     }
 
-    private func onAppear() {
+    private func setup() {
         viewModel.onSuccessCallback = { onSuccess() }
         viewModel.loadProfile()
         
