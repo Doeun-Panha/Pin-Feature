@@ -12,6 +12,7 @@ struct PinScreenView: View {
     var onSuccess: () -> Void
 
     @State private var viewModel = PinScreenViewModel()
+    
     @State private var shakeOffset: CGFloat = 0
     @State private var pose: DuoPose = .noHinge
     @State private var isLayoutSettled = false
@@ -28,60 +29,19 @@ struct PinScreenView: View {
     }
 }
 
-private struct Metrics {
-    private static let designAspect: CGFloat = 0.56
-    private static let compactHeight: CGFloat = 670
-
-    let height: CGFloat
-    let unit: CGFloat
-    let isDuo: Bool
-
-    init(size: CGSize, isDuo: Bool) {
-        self.height = size.height
-        self.unit = min(size.width, size.height * Self.designAspect)
-        self.isDuo = isDuo
-    }
-
-    private var isCompact: Bool { height < Self.compactHeight }
-
-    var backIconSize: CGFloat { unit * 0.05 }
-    var backButtonPadding: CGFloat { unit * 0.04 }
-
-    var profileImageSize: CGFloat { unit * 0.215 }
-    var nameFontSize: CGFloat { unit * 0.045 }
-    var bodyFontSize: CGFloat { unit * 0.038 }
-    var pinDotSize: CGFloat { unit * 0.05 }
-    var contentSpacing: CGFloat { height * 0.02 }
-
-    var keypadButtonSize: CGFloat { unit * 0.175 }
-    var keypadColumnSpacing: CGFloat { unit * 0.11 }
-    var keypadRowSpacing: CGFloat { height * 0.025 }
-    var keypadBottomGap: CGFloat { height * ((isDuo || isCompact) ? 0.02 : 0.08) }
-
-    var actionFontSize: CGFloat { unit * 0.038 }
-    var actionHorizontalPadding: CGFloat { unit * 0.09 }
-    var bottomInset: CGFloat { isDuo ? 0 : height * 0.03 }
-}
-
 extension PinScreenView {
     private var content: some View {
         pinLayout
             .ignoresSafeArea(.container, edges: (isFullyOpen || isPartiallyOpen) ? .horizontal : [])
             .background { backgroundView }
             .modifier(HingeTracker(pose: $pose))
-            .onAppear{ setup()}
-            .task {
-                try? await Task.sleep(for: .seconds(0.6)) // after the cover's fade-in finishes
-                isLayoutSettled = true
-            }
+            .onAppear{ setup() }
             .onChange(of: viewModel.errorTriggerCount) { _, newValue in
                 guard newValue > 0 else { return }
                 playErrorFeedback()
             }
             .navigationBarBackButtonHidden(true)
             .toolbar(isDuo ? .visible : .hidden, for: .navigationBar)
-            .toolbarBackground(.hidden, for: .navigationBar)
-            .toolbarColorScheme(.dark, for: .navigationBar)
             .toolbar {
                 if isDuo {
                     backToolbarItem
@@ -94,8 +54,8 @@ extension PinScreenView {
             let fullWidth = geometry.size.width
             let useLeftHalf = isDuo && isPartiallyOpen && fullWidth > geometry.size.height
 
-            SmoothSized(size: geometry.size) { size in
-                let m = Metrics(size: size, isDuo: isDuo)
+            PinScreenSmoothSizedHelper(size: geometry.size) { size in
+                let m = PinScreenMetricsHelper(size: size, isDuo: isDuo)
 
                 ZStack(alignment: .top) {
                     if !isDuo {
@@ -113,8 +73,10 @@ extension PinScreenView {
             .animation(isLayoutSettled ? layoutAnimation : nil, value: useLeftHalf)
         }
     }
+    
+    
 
-    private func upperSection(_ m: Metrics) -> some View {
+    private func upperSection(_ m: PinScreenMetricsHelper) -> some View {
         VStack(spacing: 0) {
             Spacer(minLength: 0)
 
@@ -131,7 +93,7 @@ extension PinScreenView {
         .animation(.spring(response: 0.3, dampingFraction: 1), value: viewModel.errorTriggerCount)
     }
 
-    private func lowerSection(_ m: Metrics) -> some View {
+    private func lowerSection(_ m: PinScreenMetricsHelper) -> some View {
         VStack(spacing: 0) {
             keypadView(m)
 
@@ -193,7 +155,7 @@ extension PinScreenView {
         }
     }
 
-    private func customBackButton(_ m: Metrics) -> some View {
+    private func customBackButton(_ m: PinScreenMetricsHelper) -> some View {
         HStack {
             Button(action: onDismiss) {
                 Image(systemName: "chevron.left")
@@ -211,7 +173,7 @@ extension PinScreenView {
 }
 
 extension PinScreenView {
-    private func profileSectionView(_ m: Metrics) -> some View {
+    private func profileSectionView(_ m: PinScreenMetricsHelper) -> some View {
         VStack(spacing: 14) {
             VStack(spacing: 8) {
                 profileImageView
@@ -257,7 +219,7 @@ extension PinScreenView {
             .scaledToFill()
     }
 
-    private func pinRowView(_ m: Metrics) -> some View {
+    private func pinRowView(_ m: PinScreenMetricsHelper) -> some View {
         VStack(spacing: m.contentSpacing) {
             HStack(spacing: 16) {
                 ForEach(0..<viewModel.pinLength, id: \.self) { index in
@@ -294,7 +256,7 @@ extension PinScreenView {
         [nil, "0", nil]
     ]
 
-    private func keypadView(_ m: Metrics) -> some View {
+    private func keypadView(_ m: PinScreenMetricsHelper) -> some View {
         VStack(spacing: m.keypadRowSpacing) {
             ForEach(Array(Self.keypadRows.enumerated()), id: \.offset) { _, row in
                 HStack(spacing: m.keypadColumnSpacing) {
@@ -329,7 +291,7 @@ extension PinScreenView {
         }
     }
 
-    private func bottomActionsView(_ m: Metrics) -> some View {
+    private func bottomActionsView(_ m: PinScreenMetricsHelper) -> some View {
         HStack {
             Button("Forget PIN") {
                 viewModel.forgetPIN()
@@ -349,19 +311,4 @@ extension PinScreenView {
     }
 }
 
-private struct SmoothSized<Content: View>: View, Animatable {
-    var size: CGSize
-    private let content: (CGSize) -> Content
 
-    init(size: CGSize, @ViewBuilder content: @escaping (CGSize) -> Content) {
-        self.size = size
-        self.content = content
-    }
-
-    var animatableData: CGSize.AnimatableData {
-        get { size.animatableData }
-        set { size.animatableData = newValue }
-    }
-
-    var body: some View { content(size) }
-}

@@ -32,9 +32,6 @@ enum AppFont {
             return font
         }
 
-        #if DEBUG
-        print("⚠️ AppFont: font not found: \(name)")
-        #endif
         return .systemFont(ofSize: size)
     }
 

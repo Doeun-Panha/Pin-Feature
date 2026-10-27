@@ -89,6 +89,28 @@
         }
       }
     },
+    "Locked" : {
+      "localizations" : {
+        "km" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "បានចាក់សោ"
+          }
+        },
+        "lo" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "ລັອກແລ້ວ"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "已锁定"
+          }
+        }
+      }
+    },
     "Please Enter PIN" : {
       "localizations" : {
         "km" : {
@@ -107,6 +129,28 @@
           "stringUnit" : {
             "state" : "machine_translated",
             "value" : "请输入 PIN 码"
+          }
+        }
+      }
+    },
+    "Unlocked" : {
+      "localizations" : {
+        "km" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "បានដោះសោ"
+          }
+        },
+        "lo" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "ປົດລັອກແລ້ວ"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "已解锁"
           }
         }
       }

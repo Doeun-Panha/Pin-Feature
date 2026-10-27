@@ -8,68 +8,64 @@
 import SwiftUI
 
 struct HomeScreenView: View {
-    @State private var showPinScreen: Bool = false
-    @State private var pose: DuoPose = .noHinge
-    @State private var pinOpacity: Double = 0
-    
-    private let pinFade: Animation = .easeInOut(duration: 0.45)
-    
+    @State private var viewModel = HomeScreenViewModel()
+        
     private let isDuo = DeviceInfo.isDuo
-    
-    private var isUnfolded: Bool {
-        pose == .partiallyOpen || pose == .fullyOpen
-    }
     
     var body: some View {
         container
-            .modifier(HingeTracker(pose: $pose))
+            .modifier(HingeTracker(pose: $viewModel.pose))
     }
 }
 
 extension HomeScreenView {
     private var container: some View {
         NavigationStack {
-            ZStack {
-                Color(hex: "093558")
-                    .ignoresSafeArea()
+            GeometryReader { geometry in
+                let unit = min(geometry.size.width, geometry.size.height * 0.56)
                 
-                background
-                
-                if showPinScreen {
-                    Group {
-                        if isDuo {
-                            NavigationStack {
-                                PinScreenView(onDismiss: hidePin, onSuccess: onSuccess)
-                            }
-                        } else {
-                            PinScreenView(onDismiss: hidePin, onSuccess: onSuccess)
-                        }
+                ZStack {
+                    Color(hex: "093558")
+                        .ignoresSafeArea()
+                     
+                    background
+                    
+                    VStack {
+                        Spacer()
+                        
+                        Text(viewModel.isUnlocked ? "Unlocked" : "Locked")
+                            .font(.system(size: unit * 0.045, weight: .semibold))
+                            .foregroundStyle(viewModel.isUnlocked ? Color.green : Color.red)
+                        
+                        Spacer()
                     }
-                    .opacity(pinOpacity)
-                    .zIndex(1)
-                    .transition(.opacity)
+                    
+                    if viewModel.isShowingPinScreen {
+                        Group {
+                            if isDuo {
+                                NavigationStack {
+                                    PinScreenView(onDismiss: viewModel.hidePin, onSuccess: viewModel.onSuccess)
+                                }
+                            } else {
+                                PinScreenView(onDismiss: viewModel.hidePin, onSuccess: viewModel.onSuccess)
+                            }
+                        }
+                        .opacity(viewModel.pinOpacity)
+                        .zIndex(1)
+                        .transition(.opacity)
+                    }
                 }
             }
             .toolbar {
-                if !showPinScreen {
-                    ToolbarItem(placement: .topBarTrailing) {
-                        Button(action: showPin) {
+                if !viewModel.isShowingPinScreen {
+                    ToolbarItem(placement: .topBarLeading) {
+                        Button(action: viewModel.showPin) {
                             Image(systemName: "lock.open")
                         }
                     }
                 }
             }
         }
-//        .fullScreenCover(isPresented: $showPinScreen) {
-//            NavigationStack {
-//                PinScreenView(onDismiss: hidePin, onSuccess: hidePin)
-//            }
-//            .opacity(pinOpacity)
-//            .presentationBackground(.clear)
-//            .onAppear {
-//                withAnimation(pinFade) { pinOpacity = 1 }
-//            }
-//        }
     }
     
     @ViewBuilder
@@ -84,7 +80,7 @@ extension HomeScreenView {
     @available(anyAppleOS 27.1, *)
     @ViewBuilder
     private var duoBackground: some View {
-        if isUnfolded {
+        if viewModel.isUnfolded {
             ArrangementView {
                 homeImage(.fit)
             } secondary: {
@@ -105,48 +101,5 @@ extension HomeScreenView {
 //                
 //            }
             .ignoresSafeArea()
-    }
-}
-
-extension HomeScreenView {
-    private var instant: Transaction {
-        var transaction = Transaction(animation: nil)
-        transaction.disablesAnimations = true
-        return transaction
-    }
-    
-    private func showPin() {
-        pinOpacity = 0
-        showPinScreen = true
-        withAnimation(pinFade) {
-            pinOpacity = 1
-        }
-    }
-    
-    private func hidePin() {
-        withAnimation(pinFade) {
-            pinOpacity = 0
-        } completion: {
-            showPinScreen = false
-        }
-    }
-
-//    private func showPin() {
-//        pinOpacity = 0
-//        withTransaction(instant) { showPinScreen = true }
-//    }
-//    
-//    private func hidePin() {
-//        withAnimation(pinFade, completionCriteria: .logicallyComplete) {
-//            pinOpacity = 0
-//        } completion: {
-//            withTransaction(instant) { showPinScreen = false }
-//        }
-//    }
-    
-    private func onSuccess() {
-        hidePin()
-        
-        //OnSuccess Logic
     }
 }

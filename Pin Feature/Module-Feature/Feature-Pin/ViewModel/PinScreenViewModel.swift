@@ -55,6 +55,7 @@ final class PinScreenViewModel {
 
 extension PinScreenViewModel {
     func loadProfile() {
+//        //Load Profile Logic
 //        Task {
 //            do {
 //                
@@ -79,6 +80,7 @@ extension PinScreenViewModel {
     }
     
     private func handlePinCompletion() {
+        //Mock Pin verifying logic
         if enteredPin == "111111" {
             onSuccessCallback?()
         } else {
@@ -101,7 +103,10 @@ extension PinScreenViewModel {
     }
     
     func forgetPIN() {
+        //Temp
         errorTriggerCount = 0
+        
+        //Forget Pin Logic
     }
     
     func handleSecondaryAction(onDismiss: () -> Void) {
