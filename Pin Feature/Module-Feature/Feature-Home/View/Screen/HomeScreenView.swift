@@ -10,6 +10,9 @@ import SwiftUI
 struct HomeScreenView: View {
     @State private var showPinScreen: Bool = true
     @State private var pose: DuoPose = .noHinge
+    @State private var pinOpacity: Double = 0
+    
+    private let pinFade: Animation = .easeInOut(duration: 0.45)
     
     private let isDuo = DeviceInfo.isDuo
     
@@ -34,7 +37,7 @@ extension HomeScreenView {
                 
 //                showPinTapArea
                 
-                pinLayer
+//                pinLayer
             }
             .toolbar {
                 if !showPinScreen {
@@ -43,20 +46,37 @@ extension HomeScreenView {
                             Image(systemName: "lock.open")
                         }
                     }
-                    
-                    if #available(iOS 26.0, *) {
-                        ToolbarSpacer(.fixed, placement: .topBarLeading)
-                    }
-                    
-                    ToolbarItem(placement: .topBarLeading) {
-                        Button(action: showPin) {
-                            Image("khmer-flag-image")
-                                .resizable()
-                                .scaledToFill()
-                        }
-                    }
                 }
             }
+        }
+        .fullScreenCover(isPresented: $showPinScreen) {
+            NavigationStack {
+                PinScreenView(onDismiss: hidePin, onSuccess: hidePin)
+            }
+            .opacity(pinOpacity)
+            .presentationBackground(.clear)
+            .onAppear {
+                withAnimation(pinFade) { pinOpacity = 1 }
+            }
+        }
+    }
+    
+    private var instant: Transaction {
+        var transaction = Transaction(animation: nil)
+        transaction.disablesAnimations = true
+        return transaction
+    }
+
+    private func showPin() {
+        pinOpacity = 0
+        withTransaction(instant) { showPinScreen = true }
+    }
+
+    private func hidePin() {
+        withAnimation(pinFade, completionCriteria: .logicallyComplete) {
+            pinOpacity = 0
+        } completion: {
+            withTransaction(instant) { showPinScreen = false }
         }
     }
     
@@ -117,11 +137,11 @@ extension HomeScreenView {
         }
     }
     
-    private func showPin() {
-        withAnimation(.easeInOut(duration: 0.5)) {
-            showPinScreen = true
-        }
-    }
+//    private func showPin() {
+//        withAnimation(.easeInOut(duration: 0.5)) {
+//            showPinScreen = true
+//        }
+//    }
     
     private func onDismiss() {
         withAnimation(.easeInOut(duration: 0.5)) {
