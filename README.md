@@ -1,6 +1,6 @@
 # PIN Authentication Module
 
-A modular, localized, and responsive PIN authentication feature built for the iOS app using **SwiftUI** and clean Model, View, and ViewModel (MVVM) architectural patterns.
+A modular, localized, and responsive PIN authentication feature built for the iOS app using **SwiftUI** and clean Model, View, and ViewModel **MVVM** architectural patterns.
 
 ---
 
@@ -52,3 +52,27 @@ Pin Feature/
 └── Module-Main/
     └── View/Screen/
         └── Pin_FeatureApp
+```
+---
+
+## 🛠️ Architecture & Tech Stack
+
+* **Language**: Swift 5.10+
+* **Framework**: SwiftUI
+* **Design Pattern**: MVVM + Modular Feature Architecture
+* **Typography & Styling**: Custom localized font mappings (`Nunito`, `Noto Sans Khmer`, `Phetsarath`)
+* **Minimum iOS Target**: iOS 17.0+
+* **IDE**: Xcode 27.1+
+
+---
+
+## 🚀 Getting Started
+
+### Prerequisites
+* macOS Sonoma or later
+* Xcode 27.1 or higher
+
+### Installation
+1. Clone the repository:
+   ```bash
+   git clone [https://github.com/Doeun-Panha/Pin-Feature.git](https://github.com/Doeun-Panha/Pin-Feature.git)
