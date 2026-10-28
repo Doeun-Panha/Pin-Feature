@@ -10,19 +10,19 @@ import SwiftUI
 struct PinScreenView: View {
     var onDismiss: () -> Void
     var onSuccess: () -> Void
-
+    
     @State private var viewModel = PinScreenViewModel()
     
     @State private var shakeOffset: CGFloat = 0
     @State private var pose: DuoPose = .noHinge
-
-    private var isFullyOpen: Bool { pose == .fullyOpen }
-    private var isPartiallyOpen: Bool { pose == .partiallyOpen }
-
+    
     private let isDuo = DeviceInfo.isDuo
+    private var isPartiallyOpen: Bool { pose == .partiallyOpen }
+    private var isFullyOpen: Bool { pose == .fullyOpen }
+    
     private let nameTextColor = "#ac9354"
     private let layoutAnimation: Animation = .smooth(duration: 0.45)
-
+    
     var body: some View {
         content
     }
@@ -56,7 +56,6 @@ extension PinScreenView {
 
                 PinScreenSmoothSizedHelper(size: geometry.size) { size in
                     let m = PinScreenMetricsHelper(size: size, isDuo: isDuo)
-                    let _ = print(size)
 
                     ZStack(alignment: .top) {
                         if !isDuo {
@@ -213,6 +212,7 @@ extension PinScreenView {
     }
 
     private var fallbackImageView: some View {
+        //Mock profile image. Swap to "nil-image-placeholder" for the correct fallback image placeholder
         Image("profile-image")
             .resizable()
             .scaledToFill()

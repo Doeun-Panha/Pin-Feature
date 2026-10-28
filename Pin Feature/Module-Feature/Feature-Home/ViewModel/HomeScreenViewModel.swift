@@ -11,9 +11,8 @@ import Observation
 @MainActor
 @Observable
 final class HomeScreenViewModel {
-    var pinOpacity: Double = 0
     var isShowingPinScreen: Bool = false
-    var isUnlocked: Bool = false
+    var pinOpacity: Double = 0
     var pose: DuoPose = .noHinge
     
     let pinFade: Animation = .easeInOut(duration: 0.45)
@@ -44,7 +43,6 @@ extension HomeScreenViewModel {
     
     func onSuccess() {
         hidePin()
-        isUnlocked = true
         // Additional OnSuccess Logic if needed
     }
 }

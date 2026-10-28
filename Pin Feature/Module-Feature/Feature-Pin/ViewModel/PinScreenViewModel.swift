@@ -14,11 +14,11 @@ import SwiftUI
 final class PinScreenViewModel {
     let pinLength = 6
     
-    //Temp data
+    //Mock data
     var userProfile: PinScreenModel? = PinScreenModel(
         profileImageUrl: "nil-image-placeholder",
         name: "Doeun Panha",
-        phone: "088 988 766"
+        phone: "012 345 678"
     )
     
     var profileImageURL: URL? {
@@ -47,7 +47,7 @@ final class PinScreenViewModel {
     var enteredPin: String = ""
     var errorTriggerCount: Int = 0
     
-    //Temp default error
+    //Mock error message
     let errorMessage = String(localized: "0085: Please Enter the Correct PIN")
     
     var onSuccessCallback: (() -> Void)?
@@ -55,14 +55,7 @@ final class PinScreenViewModel {
 
 extension PinScreenViewModel {
     func loadProfile() {
-//        //Load Profile Logic
-//        Task {
-//            do {
-//                
-//            } catch {
-//                
-//            }
-//        }
+        //Load Profile Logic
     }
     
     func appendDigit(_ digit: String) {
@@ -88,24 +81,10 @@ extension PinScreenViewModel {
             enteredPin = ""
         }
         
-//        let requestPayload = PinVerifyRequest(pin: enteredPin)
-//        
-//        Task {
-//            do {
-//
-//        
-//                onSuccessCallback?()
-//            } catch {
-//                isError = true
-//                enteredPin = ""
-//            }
-//        }
+        //Pin verifying logic
     }
     
     func forgetPIN() {
-        //Temp
-        errorTriggerCount = 0
-        
         //Forget Pin Logic
     }
     
