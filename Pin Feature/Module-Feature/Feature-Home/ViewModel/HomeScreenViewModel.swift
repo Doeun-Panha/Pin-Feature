@@ -11,8 +11,8 @@ import Observation
 @MainActor
 @Observable
 final class HomeScreenViewModel {
-    var isShowingPinScreen: Bool = false
     var pinOpacity: Double = 0
+    var isShowingPinScreen: Bool = false
     var isUnlocked: Bool = false
     var pose: DuoPose = .noHinge
     
@@ -25,16 +25,6 @@ final class HomeScreenViewModel {
 
 extension HomeScreenViewModel {
     func showPin() {
-//        withAnimation(pinFade) {
-//            pinOpacity = 1
-//        } completion: {
-//            self.isShowingPinScreen = true
-//        }
-//        
-////        withAnimation(pinFade) {
-////            isShowingPinScreen = true
-////        }
-        
         pinOpacity = 0
         isShowingPinScreen = true
         DispatchQueue.main.async {

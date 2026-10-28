@@ -51,6 +51,7 @@ extension HomeScreenView {
                 }
             }
         }
+//        .onAppear(perform: viewModel.showPin)
     }
     
     @ViewBuilder
@@ -79,12 +80,6 @@ extension HomeScreenView {
     
     private func homeImage(_ contentMode: ContentMode) -> some View {
         Color(hex: "093558")
-//            .background {
-//                Image("dummy-homeScreenView-Image")
-//                    .resizable()
-//                    .aspectRatio(contentMode: contentMode)
-//                
-//            }
             .ignoresSafeArea()
     }
 }

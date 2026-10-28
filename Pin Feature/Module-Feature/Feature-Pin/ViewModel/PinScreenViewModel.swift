@@ -18,7 +18,7 @@ final class PinScreenViewModel {
     var userProfile: PinScreenModel? = PinScreenModel(
         profileImageUrl: "nil-image-placeholder",
         name: "Doeun Panha",
-        phone: "069 988 883"
+        phone: "088 988 766"
     )
     
     var profileImageURL: URL? {

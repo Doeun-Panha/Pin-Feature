@@ -69,7 +69,6 @@ extension PinScreenView {
                             }
                     }
                 }
-//                .animation(layoutAnimation, value: geometxry.size)
                 .offset(x: useLeftHalf ? -fullWidth / 4 : 0)
                 .animation(layoutAnimation, value: useLeftHalf)
             }
@@ -124,14 +123,14 @@ extension PinScreenView {
         viewModel.onSuccessCallback = { onSuccess() }
         viewModel.loadProfile()
         
-//        Task {
-//            while true {
-//                viewModel.errorTriggerCount = 0
-//                try? await Task.sleep(for: .seconds(2))
-//                viewModel.errorTriggerCount = 1
-//                try? await Task.sleep(for: .seconds(2))
-//            }
-//        }
+        Task {
+            while true {
+                viewModel.errorTriggerCount = 0
+                try? await Task.sleep(for: .seconds(2))
+                viewModel.errorTriggerCount = 1
+                try? await Task.sleep(for: .seconds(2))
+            }
+        }
     }
 
     private func playErrorFeedback() {
