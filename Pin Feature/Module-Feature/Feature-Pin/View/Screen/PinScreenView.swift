@@ -15,7 +15,6 @@ struct PinScreenView: View {
     
     @State private var shakeOffset: CGFloat = 0
     @State private var pose: DuoPose = .noHinge
-    @State private var isLayoutSettled = false
 
     private var isFullyOpen: Bool { pose == .fullyOpen }
     private var isPartiallyOpen: Bool { pose == .partiallyOpen }
@@ -32,7 +31,7 @@ struct PinScreenView: View {
 extension PinScreenView {
     private var content: some View {
         pinLayout
-            .ignoresSafeArea(.container, edges: (isFullyOpen || isPartiallyOpen) ? .horizontal : [])
+            .ignoresSafeArea(.container, edges: isDuo ? .horizontal : [])
             .background { backgroundView }
             .modifier(HingeTracker(pose: $pose))
             .onAppear{ setup() }
@@ -51,30 +50,31 @@ extension PinScreenView {
 
     private var pinLayout: some View {
         GeometryReader { geometry in
-            let fullWidth = geometry.size.width
-            let useLeftHalf = isDuo && isPartiallyOpen && fullWidth > geometry.size.height
+            if geometry.size.width > 0, geometry.size.height > 0 {
+                let fullWidth = geometry.size.width
+                let useLeftHalf = isDuo && isPartiallyOpen && fullWidth > geometry.size.height
 
-            PinScreenSmoothSizedHelper(size: geometry.size) { size in
-                let m = PinScreenMetricsHelper(size: size, isDuo: isDuo)
+                PinScreenSmoothSizedHelper(size: geometry.size) { size in
+                    let m = PinScreenMetricsHelper(size: size, isDuo: isDuo)
+                    let _ = print(size)
 
-                ZStack(alignment: .top) {
-                    if !isDuo {
-                        customBackButton(m)
-                    }
-
-                    upperSection(m)
-                        .safeAreaInset(edge: .bottom, spacing: 0) {
-                            lowerSection(m)
+                    ZStack(alignment: .top) {
+                        if !isDuo {
+                            customBackButton(m)
                         }
+
+                        upperSection(m)
+                            .safeAreaInset(edge: .bottom, spacing: 0) {
+                                lowerSection(m)
+                            }
+                    }
                 }
+//                .animation(layoutAnimation, value: geometxry.size)
+                .offset(x: useLeftHalf ? -fullWidth / 4 : 0)
+                .animation(layoutAnimation, value: useLeftHalf)
             }
-            .animation(isLayoutSettled ? layoutAnimation : nil, value: geometry.size)
-            .offset(x: useLeftHalf ? -fullWidth / 4 : 0)
-            .animation(isLayoutSettled ? layoutAnimation : nil, value: useLeftHalf)
         }
     }
-    
-    
 
     private func upperSection(_ m: PinScreenMetricsHelper) -> some View {
         VStack(spacing: 0) {

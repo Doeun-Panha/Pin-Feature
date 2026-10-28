@@ -21,39 +21,24 @@ struct HomeScreenView: View {
 extension HomeScreenView {
     private var container: some View {
         NavigationStack {
-            GeometryReader { geometry in
-                let unit = min(geometry.size.width, geometry.size.height * 0.56)
+            ZStack {
+                Color(hex: "093558")
+                    .ignoresSafeArea()
+                 
+                background
                 
-                ZStack {
-                    Color(hex: "093558")
-                        .ignoresSafeArea()
-                     
-                    background
-                    
-                    VStack {
-                        Spacer()
-                        
-                        Text(viewModel.isUnlocked ? "Unlocked" : "Locked")
-                            .font(.system(size: unit * 0.045, weight: .semibold))
-                            .foregroundStyle(viewModel.isUnlocked ? Color.green : Color.red)
-                        
-                        Spacer()
-                    }
-                    
-                    if viewModel.isShowingPinScreen {
-                        Group {
-                            if isDuo {
-                                NavigationStack {
-                                    PinScreenView(onDismiss: viewModel.hidePin, onSuccess: viewModel.onSuccess)
-                                }
-                            } else {
+                if viewModel.isShowingPinScreen {
+                    Group {
+                        if isDuo {
+                            NavigationStack {
                                 PinScreenView(onDismiss: viewModel.hidePin, onSuccess: viewModel.onSuccess)
                             }
+                        } else {
+                            PinScreenView(onDismiss: viewModel.hidePin, onSuccess: viewModel.onSuccess)
                         }
-                        .opacity(viewModel.pinOpacity)
-                        .zIndex(1)
-                        .transition(.opacity)
                     }
+                    .opacity(viewModel.pinOpacity)
+                    .zIndex(1)
                 }
             }
             .toolbar {

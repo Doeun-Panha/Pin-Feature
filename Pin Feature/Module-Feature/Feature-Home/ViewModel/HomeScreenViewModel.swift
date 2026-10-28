@@ -25,10 +25,22 @@ final class HomeScreenViewModel {
 
 extension HomeScreenViewModel {
     func showPin() {
+//        withAnimation(pinFade) {
+//            pinOpacity = 1
+//        } completion: {
+//            self.isShowingPinScreen = true
+//        }
+//        
+////        withAnimation(pinFade) {
+////            isShowingPinScreen = true
+////        }
+        
         pinOpacity = 0
         isShowingPinScreen = true
-        withAnimation(pinFade) {
-            pinOpacity = 1
+        DispatchQueue.main.async {
+            withAnimation(self.pinFade) {
+                self.pinOpacity = 1
+            }
         }
     }
     

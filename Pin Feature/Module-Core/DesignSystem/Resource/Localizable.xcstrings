@@ -90,6 +90,7 @@
       }
     },
     "Locked" : {
+      "extractionState" : "stale",
       "localizations" : {
         "km" : {
           "stringUnit" : {
@@ -134,6 +135,7 @@
       }
     },
     "Unlocked" : {
+      "extractionState" : "stale",
       "localizations" : {
         "km" : {
           "stringUnit" : {
