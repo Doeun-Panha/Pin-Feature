@@ -6,9 +6,14 @@
 	objectVersion = 110;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		B88D79353091E80700A36E36 /* .gitignore in Resources */ = {isa = PBXBuildFile; fileRef = B88D79343091E7E200A36E36 /* .gitignore */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXFileReference section */
 		B8061C90307DE0CB00D7B546 /* Pin Feature.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Pin Feature.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		B8061CBE307E2BDE00D7B546 /* Pin-Feature-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "Pin-Feature-Info.plist"; sourceTree = "<group>"; };
+		B88D79343091E7E200A36E36 /* .gitignore */ = {isa = PBXFileReference; lastKnownFileType = text; path = .gitignore; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -31,6 +36,7 @@
 		B8061C87307DE0CB00D7B546 = {
 			isa = PBXGroup;
 			children = (
+				B88D79343091E7E200A36E36 /* .gitignore */,
 				B8061CBE307E2BDE00D7B546 /* Pin-Feature-Info.plist */,
 				B8061C92307DE0CB00D7B546 /* Pin Feature */,
 				B8061C91307DE0CB00D7B546 /* Products */,
@@ -107,6 +113,7 @@
 		B8061C8E307DE0CB00D7B546 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			files = (
+				B88D79353091E80700A36E36 /* .gitignore in Resources */,
 			);
 		};
 /* End PBXResourcesBuildPhase section */
