@@ -51,7 +51,6 @@ extension HomeScreenView {
                 }
             }
         }
-//        .onAppear(perform: viewModel.showPin)
     }
     
     @ViewBuilder

@@ -31,7 +31,7 @@ struct PinScreenView: View {
 extension PinScreenView {
     private var content: some View {
         pinLayout
-            .ignoresSafeArea(.container, edges: isDuo ? .horizontal : [])
+            .ignoresSafeArea(.container, edges: (isFullyOpen || isPartiallyOpen) ? .horizontal : [])
             .background { backgroundView }
             .modifier(HingeTracker(pose: $pose))
             .onAppear{ setup() }
@@ -121,15 +121,6 @@ extension PinScreenView {
     private func setup() {
         viewModel.onSuccessCallback = { onSuccess() }
         viewModel.loadProfile()
-        
-        Task {
-            while true {
-                viewModel.errorTriggerCount = 0
-                try? await Task.sleep(for: .seconds(2))
-                viewModel.errorTriggerCount = 1
-                try? await Task.sleep(for: .seconds(2))
-            }
-        }
     }
 
     private func playErrorFeedback() {
