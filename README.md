@@ -75,4 +75,5 @@ Pin Feature/
 ### Installation
 1. Clone the repository:
    ```bash
-   git clone [https://github.com/Doeun-Panha/Pin-Feature.git](https://github.com/Doeun-Panha/Pin-Feature.git)
+   git clone https://github.com/Doeun-Panha/Pin-Feature.git
+   ```
