@@ -80,10 +80,12 @@ extension PinScreenView {
 
             VStack(spacing: m.contentSpacing) {
                 profileSectionView(m)
+                Spacer()
+                    .frame(maxHeight: m.contentSpacing)
                 pinRowView(m)
             }
 
-            Spacer(minLength: 20)
+            Spacer(minLength: m.contentSpacing)
         }
         .safeAreaPadding(.top, 5)
         .frame(maxWidth: m.unit)
